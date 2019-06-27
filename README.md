@@ -10,7 +10,7 @@ _A platform which give you access to your Philips Air Purifier._
 
 ## Installation:
 
-Just copy paste the content of the `fan.philips_airpurifier/custom_components` folder in your `config/custom_components` directory.
+Just copy paste the content of the `Philips-AirPurifier/custom_components` folder in your `config/custom_components` directory.
 
 ## Usage:
 
