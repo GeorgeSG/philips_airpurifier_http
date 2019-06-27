@@ -1,4 +1,4 @@
-# fan.philips_airpurifier
+# Philips AirPurifier
 
 _A platform which give you access to your Philips Air Purifier._
 
