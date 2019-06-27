@@ -1,7 +1,7 @@
 {
   "domain": "philips_airpurifier",
   "name": "Philips AirPurifier",
-  "documentation": "",
+  "documentation": "https://github.com/xMrVizzy/fan.philips_airpurifier",
   "dependencies": [],
   "codeowners": ["@xMrVizzy"],
   "requirements": []
