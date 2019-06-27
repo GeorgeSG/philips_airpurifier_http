@@ -4,15 +4,15 @@
 
 _A platform which give you access to your Philips Air Purifier._
 
-## Note
+## Note:
 
 **FAN SERVICES NOT WORKING FOR NOW, WILL BE ADDED IN NEXT UPDATES**
 
-## Installation
+## Installation:
 
 Just copy paste the content of the `fan.philips_airpurifier/custom_components` folder in your `config/custom_components` directory.
 
-## Example configuration.yaml
+## Usage:
 
 ```yaml
 fan:
@@ -20,7 +20,7 @@ fan:
   host: 192.168.0.17
 ```
 
-## Configuration variables
+## Configuration variables:
   
 Field | Value | Necessity | Description
 --- | --- | --- | ---
