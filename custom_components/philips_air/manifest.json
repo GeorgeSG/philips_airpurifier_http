@@ -1,0 +1,8 @@
+{
+  "domain": "philips_air",
+  "name": "Philips AirPurifier",
+  "documentation": "",
+  "dependencies": [],
+  "codeowners": ["@xMrVizzy"],
+  "requirements": []
+}
