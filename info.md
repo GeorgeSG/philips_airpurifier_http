@@ -1,6 +1,6 @@
 ## Usage:
 
-```yaml
+```
 fan:
   platform: philips_airpurifier
   host: 192.168.0.17
