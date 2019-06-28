@@ -15,7 +15,7 @@ import voluptuous as vol
 import homeassistant.helpers.config_validation as cv
 from homeassistant.components.fan import (FanEntity, PLATFORM_SCHEMA)
 
-__version__ = '0.0.1'
+__version__ = '0.0.2'
 
 G = int('A4D1CBD5C3FD34126765A442EFB99905F8104DD258AC507FD6406CFF14266D31266FEA1E5C41564B777E690F5504F213160217B4B01B886A5E91547F9E2749F4D7FBD7D3B9A92EE1909D0D2263F80A76A6A24C087A091F531DBF0A0169B6A28AD662A4D18E73AFA32D779D5918D08BC8858F4DCEF97C2A24855E6EEB22B3B2E5', 16)
 P = int('B10B8F96A080E01DDE92DE5EAE5D54EC52C99FBCFB06A3C69A6A9DCA52D23B616073E28675A23D189838EF1E2EE652C013ECB4AEA906112324975C3CD49B83BFACCBDD7D90C4BD7098488E9C219A73724EFFD6FAE5644738FAA31A4FF55BCCC0A151AF5F0DC8B4BD45BF37DF365C1A65E68CFDA76D4DA708DF1FB2BC2E4A4371', 16)
@@ -41,7 +41,6 @@ def aes_decrypt(data, key):
     return cipher.decrypt(data)
 
 def encrypt(values, key):
-    # add two random bytes in front of the body
     data = 'AA' + json.dumps(values)
     data = pad(bytearray(data, 'ascii'), 16, style='pkcs7')
     iv = bytes(16)
@@ -52,7 +51,6 @@ def encrypt(values, key):
 def decrypt(data, key):
     payload = base64.b64decode(data)
     data = aes_decrypt(payload, key)
-    # response starts with 2 random bytes, exclude them
     response = unpad(data, 16, style='pkcs7')[2:]
     return response.decode('ascii')
 
@@ -108,8 +106,12 @@ class PhilipsFan(FanEntity):
         status = self._get(url)
         if 'pwr' in status:
             pwr = status['pwr']
-            pwr_str = {'1': 'ON', '0': 'OFF'}
-            self._power = pwr_str.get(pwr, pwr)
+            pwr_str = {'1': 'on', '0': 'off'}
+            pwr = pwr_str.get(pwr, pwr)
+            if pwr == 'on':
+                self.turn_on()
+            else:
+                self.turn_off()
         if 'pm25' in status:
             self._pm25 = status['pm25']
         if 'rh' in status:
@@ -164,12 +166,46 @@ class PhilipsFan(FanEntity):
         return ICON
     
     @property
-    def speed(self) -> str:
-        return self._fan_speed
-
-    @property
     def speed_list(self) -> list:
         return self._fan_speed_list
+    
+    @property
+    def speed(self) -> str:
+        return self._fan_speed
+    
+    def turn_on(self, speed: str = None, **kwargs) -> None:
+        if speed is None:
+            self._state = 'on'
+            values = {}
+            values['pwr'] = '1'
+            self.set_values(values)
+        else:
+            self.set_speed(speed)
+
+    def turn_off(self, **kwargs) -> None:
+        self._state = 'off'
+        values = {}
+        values['pwr'] = '0'
+        self.set_values(values)
+    
+    def set_speed(self, speed: str):
+        values = {}
+        if speed == 'on' or speed == 'off':
+            self._state = speed
+        elif speed == '1' or speed == '2' or speed == '3' or speed == 'turbo':
+            if speed == 'turbo':
+                values['om'] = 't'
+            else:
+                values['om'] = speed
+            self.set_values(values)
+        else:
+            if speed == 'auto':
+                values['mode'] = 'P'
+            elif speed == 'allergen':
+                values['mode'] = 'A'
+            else:
+                values['mode'] = 'S'
+            self.set_values(values)
     
     @property
     def device_state_attributes(self):
@@ -190,6 +226,13 @@ class PhilipsFan(FanEntity):
                 'child_lock': self._child_lock}
     
     ### Other methods ###
+    
+    def set_values(self, values):
+        body = encrypt(values, self._session_key)
+        url = 'http://{}/di/v1/products/1/air'.format(self._host)
+        req = urllib.request.Request(url=url, data=body, method='PUT')
+        with urllib.request.urlopen(req) as response:
+            resp = response.read()
     
     def _get_key(self):
         url = 'http://{}/di/v1/products/0/security'.format(self._host)
