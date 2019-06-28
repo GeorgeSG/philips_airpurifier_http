@@ -84,7 +84,6 @@ class PhilipsFan(FanEntity):
         self._temperature = None
         self._function = None
         self._light_brightness = None
-        self._buttons_light = None
         self._used_index = None
         self._water_level = None
         self._child_lock = None
@@ -138,10 +137,6 @@ class PhilipsFan(FanEntity):
                 self._fan_speed = om
         if 'aqil' in status:
             self._light_brightness = status['aqil']
-        if 'uil' in status:
-            uil = status['uil']
-            uil_str = {'1': 'ON', '0': 'OFF'}
-            self._buttons_light = uil_str.get(uil, uil)
         if 'ddp' in status:
             ddp = status['ddp']
             ddp_str = {'1': 'PM2.5', '0': 'IAI'}
@@ -211,21 +206,20 @@ class PhilipsFan(FanEntity):
     
     @property
     def device_state_attributes(self):
-        return {'pre_filter': self._pre_filter,
-                'wick_filter': self._wick_filter,
-                'carbon_filter': self._carbon_filter,
-                'hepa_filter': self._hepa_filter,
+        return {'function': self._function,
+                'used_index': self._used_index,
                 'pm25': self._pm25,
-                'humidity': self._humidity,
-                'target_humidity': self._target_humidity,
                 'allergen_index': self._allergen_index,
                 'temperature': self._temperature,
-                'function': self._function,
-                'light_brightness': self._light_brightness,
-                'buttons_light': self._buttons_light,
-                'used_index': self._used_index,
+                'humidity': self._humidity,
+                'target_humidity': self._target_humidity,
                 'water_level': self._water_level,
-                'child_lock': self._child_lock}
+                'light_brightness': self._light_brightness,
+                'child_lock': self._child_lock,
+                'pre_filter': self._pre_filter,
+                'wick_filter': self._wick_filter,
+                'carbon_filter': self._carbon_filter,
+                'hepa_filter': self._hepa_filter}
     
     ### Other methods ###
     
