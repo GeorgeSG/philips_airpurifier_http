@@ -6,7 +6,7 @@ _A platform which give you access to your Philips Air Purifier._
 
 ## Note:
 
-**FAN SERVICES NOT WORKING FOR NOW, WILL BE ADDED IN NEXT UPDATES**
+**CHILD LOCK, CHANGE LIGHTS, AND LIKE THAT FEATURES WILL BE ADDED SOON**
 
 ## Installation:
 
