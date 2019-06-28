@@ -26,6 +26,8 @@ CONF_NAME = 'name'
 DEFAULT_NAME = 'Philips AirPurifier'
 ICON = 'mdi:air-purifier'
 
+SPEED_LIST = ['auto', 'allergen', 'sleep', '1', '2', '3', 'turbo']
+
 _LOGGER = logging.getLogger(__name__)
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
@@ -66,11 +68,9 @@ class PhilipsFan(FanEntity):
         self._host = host
         self._name = name
         self._state = None
-        self._power = None
         self._session_key = None
         
         self._fan_speed = None
-        self._fan_speed_list = ['auto', 'allergen', 'sleep', '1', '2', '3', 'turbo']
         
         self._pre_filter = None
         self._wick_filter = None
@@ -167,7 +167,7 @@ class PhilipsFan(FanEntity):
     
     @property
     def speed_list(self) -> list:
-        return self._fan_speed_list
+        return SPEED_LIST
     
     @property
     def speed(self) -> str:
