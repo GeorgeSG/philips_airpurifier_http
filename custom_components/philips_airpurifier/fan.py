@@ -15,7 +15,7 @@ import voluptuous as vol
 import homeassistant.helpers.config_validation as cv
 from homeassistant.components.fan import (FanEntity, PLATFORM_SCHEMA)
 
-__version__ = '0.0.2'
+__version__ = '0.0.3'
 
 G = int('A4D1CBD5C3FD34126765A442EFB99905F8104DD258AC507FD6406CFF14266D31266FEA1E5C41564B777E690F5504F213160217B4B01B886A5E91547F9E2749F4D7FBD7D3B9A92EE1909D0D2263F80A76A6A24C087A091F531DBF0A0169B6A28AD662A4D18E73AFA32D779D5918D08BC8858F4DCEF97C2A24855E6EEB22B3B2E5', 16)
 P = int('B10B8F96A080E01DDE92DE5EAE5D54EC52C99FBCFB06A3C69A6A9DCA52D23B616073E28675A23D189838EF1E2EE652C013ECB4AEA906112324975C3CD49B83BFACCBDD7D90C4BD7098488E9C219A73724EFFD6FAE5644738FAA31A4FF55BCCC0A151AF5F0DC8B4BD45BF37DF365C1A65E68CFDA76D4DA708DF1FB2BC2E4A4371', 16)
@@ -26,7 +26,7 @@ CONF_NAME = 'name'
 DEFAULT_NAME = 'Philips AirPurifier'
 ICON = 'mdi:air-purifier'
 
-SPEED_LIST = ['auto', 'allergen', 'sleep', '1', '2', '3', 'turbo']
+SPEED_LIST = ['Auto Mode', 'Allergen Mode', 'Sleep Mode', 'Speed 1', 'Speed 2', 'Speed 3', 'Turbo']
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -128,13 +128,13 @@ class PhilipsFan(FanEntity):
             self._function = func_str.get(func, func)
         if 'mode' in status:
             mode = status['mode']
-            mode_str = {'P': 'auto', 'A': 'allergen', 'S': 'sleep', 'M': 'manual', 'B': 'bacteria', 'N': 'night'}
+            mode_str = {'P': 'Auto Mode', 'A': 'Allergen Mode', 'S': 'Sleep Mode', 'M': 'Manual', 'B': 'Bacteria', 'N': 'Night'}
             self._fan_speed = mode_str.get(mode, mode)
         if 'om' in status:
             om = status['om']
-            om_str = {'s': 'silent', 't': 'turbo'}
+            om_str = {'s': 'Silent', 't': 'Turbo', '1': 'Speed 1', '2': 'Speed 2', '3': 'Speed 3'}
             om = om_str.get(om, om)
-            if om != 'silent' and self._fan_speed == 'manual':
+            if om != 'Silent' and self._fan_speed == 'Manual':
                 self._fan_speed = om
         if 'aqil' in status:
             self._light_brightness = status['aqil']
@@ -175,35 +175,37 @@ class PhilipsFan(FanEntity):
     
     def turn_on(self, speed: str = None, **kwargs) -> None:
         if speed is None:
-            self._state = 'on'
             values = {}
             values['pwr'] = '1'
             self.set_values(values)
+            self._state = 'on'
         else:
             self.set_speed(speed)
 
     def turn_off(self, **kwargs) -> None:
-        self._state = 'off'
         values = {}
         values['pwr'] = '0'
         self.set_values(values)
+        self._state = 'off'
     
     def set_speed(self, speed: str):
         values = {}
-        if speed == 'on' or speed == 'off':
-            self._state = speed
-        elif speed == '1' or speed == '2' or speed == '3' or speed == 'turbo':
-            if speed == 'turbo':
+        if speed == 'Speed 1' or speed == 'Speed 2' or speed == 'Speed 3' or speed == 'Turbo':
+            if speed == 'Turbo':
                 values['om'] = 't'
-            else:
-                values['om'] = speed
+            elif speed == 'Speed 1':
+                values['om'] = '1'
+            elif speed == 'Speed 2':
+                values['om'] = '2'
+            elif speed == 'Speed 3':
+                values['om'] = '3'
             self.set_values(values)
         else:
-            if speed == 'auto':
+            if speed == 'Auto Mode':
                 values['mode'] = 'P'
-            elif speed == 'allergen':
+            elif speed == 'Allergen Mode':
                 values['mode'] = 'A'
-            else:
+            elif speed == 'Sleep Mode':
                 values['mode'] = 'S'
             self.set_values(values)
     
