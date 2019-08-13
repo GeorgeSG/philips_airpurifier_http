@@ -182,22 +182,20 @@ class PhilipsFan(FanEntity):
     
     def set_speed(self, speed: str):
         values = {}
-        if speed == 'Speed 1' or speed == 'Speed 2' or speed == 'Speed 3' or speed == 'Turbo':
-            if speed == 'Turbo':
-                values['om'] = 't'
-            elif speed == 'Speed 1':
-                values['om'] = '1'
-            elif speed == 'Speed 2':
-                values['om'] = '2'
-            elif speed == 'Speed 3':
-                values['om'] = '3'
-        else:
-            if speed == 'Auto Mode':
-                values['mode'] = 'P'
-            elif speed == 'Allergen Mode':
-                values['mode'] = 'A'
-            elif speed == 'Sleep Mode':
-                values['mode'] = 'S'
+        if speed == 'Turbo':
+            values['om'] = 't'
+        elif speed == 'Speed 1':
+            values['om'] = '1'
+        elif speed == 'Speed 2':
+            values['om'] = '2'
+        elif speed == 'Speed 3':
+            values['om'] = '3'
+        elif speed == 'Auto Mode':
+            values['mode'] = 'P'
+        elif speed == 'Allergen Mode':
+            values['mode'] = 'A'
+        elif speed == 'Sleep Mode':
+            values['mode'] = 'S'
         self.set_values(values)
     
     @property
