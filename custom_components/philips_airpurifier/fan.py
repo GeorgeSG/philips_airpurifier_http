@@ -104,10 +104,7 @@ class PhilipsFan(FanEntity):
         url = 'http://{}/di/v1/products/1/air'.format(self._host)
         status = self._get(url)
         if 'pwr' in status:
-            pwr = status['pwr']
-            pwr_str = {'1': 'on', '0': 'off'}
-            pwr = pwr_str.get(pwr, pwr)
-            if pwr == 'on':
+            if status['pwr'] == '1':
                 self.turn_on()
             else:
                 self.turn_off()
@@ -194,7 +191,6 @@ class PhilipsFan(FanEntity):
                 values['om'] = '2'
             elif speed == 'Speed 3':
                 values['om'] = '3'
-            self.set_values(values)
         else:
             if speed == 'Auto Mode':
                 values['mode'] = 'P'
@@ -202,7 +198,7 @@ class PhilipsFan(FanEntity):
                 values['mode'] = 'A'
             elif speed == 'Sleep Mode':
                 values['mode'] = 'S'
-            self.set_values(values)
+        self.set_values(values)
     
     @property
     def device_state_attributes(self):
