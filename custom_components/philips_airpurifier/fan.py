@@ -105,9 +105,9 @@ class PhilipsFan(FanEntity):
         status = self._get(url)
         if 'pwr' in status:
             if status['pwr'] == '1':
-                self.turn_on()
+                self._state = 'on'
             else:
-                self.turn_off()
+                self._state = 'off'
         if 'pm25' in status:
             self._pm25 = status['pm25']
         if 'rh' in status:
