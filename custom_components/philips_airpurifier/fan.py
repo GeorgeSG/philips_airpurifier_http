@@ -170,7 +170,6 @@ class PhilipsFan(FanEntity):
             values = {}
             values['pwr'] = '1'
             self.set_values(values)
-            self._state = 'on'
         else:
             self.set_speed(speed)
 
@@ -178,7 +177,6 @@ class PhilipsFan(FanEntity):
         values = {}
         values['pwr'] = '0'
         self.set_values(values)
-        self._state = 'off'
     
     def set_speed(self, speed: str):
         values = {}
