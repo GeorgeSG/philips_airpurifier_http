@@ -15,7 +15,7 @@ import voluptuous as vol
 import homeassistant.helpers.config_validation as cv
 from homeassistant.components.fan import (FanEntity, PLATFORM_SCHEMA)
 
-__version__ = '0.3.1'
+__version__ = '0.3.2'
 
 G = int('A4D1CBD5C3FD34126765A442EFB99905F8104DD258AC507FD6406CFF14266D31266FEA1E5C41564B777E690F5504F213160217B4B01B886A5E91547F9E2749F4D7FBD7D3B9A92EE1909D0D2263F80A76A6A24C087A091F531DBF0A0169B6A28AD662A4D18E73AFA32D779D5918D08BC8858F4DCEF97C2A24855E6EEB22B3B2E5', 16)
 P = int('B10B8F96A080E01DDE92DE5EAE5D54EC52C99FBCFB06A3C69A6A9DCA52D23B616073E28675A23D189838EF1E2EE652C013ECB4AEA906112324975C3CD49B83BFACCBDD7D90C4BD7098488E9C219A73724EFFD6FAE5644738FAA31A4FF55BCCC0A151AF5F0DC8B4BD45BF37DF365C1A65E68CFDA76D4DA708DF1FB2BC2E4A4371', 16)
@@ -198,20 +198,36 @@ class PhilipsFan(FanEntity):
     
     @property
     def device_state_attributes(self):
-        return {'function': self._function,
-                'used_index': self._used_index,
-                'pm25': self._pm25,
-                'allergen_index': self._allergen_index,
-                'temperature': self._temperature,
-                'humidity': self._humidity,
-                'target_humidity': self._target_humidity,
-                'water_level': self._water_level,
-                'light_brightness': self._light_brightness,
-                'child_lock': self._child_lock,
-                'pre_filter': self._pre_filter,
-                'wick_filter': self._wick_filter,
-                'carbon_filter': self._carbon_filter,
-                'hepa_filter': self._hepa_filter}
+        attr = {}
+        if self._function != None:
+          attr['function'] = self._function
+        elif self._used_index != None:
+          attr['used_index'] = self._used_index
+        elif self._pm25 != None:
+          attr['pm25'] = self._pm25
+        elif self._allergen_index != None:
+          attr['allergen_index'] = self._allergen_index
+        elif self._temperature != None:
+          attr['temperature'] = self._temperature
+        elif self._humidity != None:
+          attr['humidity'] = self._humidity
+        elif self._target_humidity != None:
+          attr['target_humidity'] = self._target_humidity
+        elif self._water_level != None:
+          attr['water_level'] = self._water_level
+        elif self._light_brightness != None:
+          attr['light_brightness'] = self._light_brightness
+        elif self._child_lock != None:
+          attr['child_lock'] = self._child_lock
+        elif self._pre_filter != None:
+          attr['pre_filter'] = self._pre_filter
+        elif self._wick_filter != None:
+          attr['wick_filter'] = self._wick_filter
+        elif self._carbon_filter != None:
+          attr['carbon_filter'] = self._carbon_filter
+        elif self._hepa_filter != None:
+          attr['hepa_filter'] = self._hepa_filter
+        return attr
     
     ### Other methods ###
     
