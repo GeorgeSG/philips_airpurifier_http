@@ -4,5 +4,5 @@
   "documentation": "https://github.com/xMrVizzy/philips-airpurifier",
   "dependencies": [],
   "codeowners": ["@xMrVizzy"],
-  "requirements": []
+  "requirements": ["pycrypto"]
 }
