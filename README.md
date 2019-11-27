@@ -1,11 +1,5 @@
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg?style=for-the-badge)](https://github.com/custom-components/hacs)
 
-### Note:
-**CHILD LOCK, CHANGE LIGHTS, AND LIKE THAT FEATURES WILL BE ADDED SOON**
-
-### Installation:
-Just copy paste the content of the `custom_components` folder in your `config/custom_components` directory.
-
 ### Usage:
 ```yaml
 fan:
