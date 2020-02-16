@@ -9,7 +9,7 @@ import random
 import voluptuous as vol
 
 import homeassistant.helpers.config_validation as cv
-from homeassistant.components.fan import (FanEntity, PLATFORM_SCHEMA)
+from homeassistant.components.fan import (FanEntity, PLATFORM_SCHEMA, SUPPORT_SET_SPEED)
 
 __version__ = '0.3.5'
 
@@ -157,6 +157,11 @@ class PhilipsAirPurifierFan(FanEntity):
     @property
     def speed(self) -> str:
         return self._fan_speed
+    
+    @property
+    def supported_features(self) -> int:
+        """Flag supported features."""
+        return SUPPORT_SET_SPEED
     
     def turn_on(self, speed: str = None, **kwargs) -> None:
         if speed is None:
