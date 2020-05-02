@@ -151,7 +151,7 @@ class PhilipsAirPurifierFan(FanEntity):
 
     @property
     def speed_list(self) -> list:
-        return SPEED_AND_MODE_LIST
+        return SUPPORTED_SPEED_LIST
 
     @property
     def speed(self) -> str:
