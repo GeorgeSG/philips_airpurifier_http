@@ -1,10 +1,6 @@
 """Support for Phillips Air Purifiers and Humidifiers."""
 
-from Crypto.Cipher import AES
-from Crypto.Util.Padding import pad, unpad
 import urllib.request
-import base64
-import binascii
 import json
 import random
 
@@ -23,7 +19,14 @@ from homeassistant.const import (
     CONF_NAME,
 )
 
-from .crypto import *
+from .crypto import (
+    G,
+    P,
+    aes_decrypt,
+    decrypt,
+    encrypt
+)
+
 from .const import *
 
 __version__ = '0.3.5'
@@ -39,10 +42,13 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
 ### Setup Platform ###
 
 def setup_platform(hass, config, add_devices, discovery_info=None):
+    """Setup philips-airpurifier platform."""
     add_devices([PhilipsAirPurifierFan(hass, config)])
 
 
 class PhilipsAirPurifierFan(FanEntity):
+    """philips-aurpurifier fan entity."""
+
     def __init__(self, hass, config):
         self.hass = hass
         self._host = config[CONF_HOST]
@@ -79,12 +85,13 @@ class PhilipsAirPurifierFan(FanEntity):
     ### Update Fan attributes ###
 
     def update(self):
+        """Fetch state from device."""
         try:
             self._update_filters()
             self._update_state()
             self._update_model()
             self._available = True
-        except Exception as ex:
+        except Exception:
             self._available = False
 
     def _update_filters(self):
@@ -129,10 +136,10 @@ class PhilipsAirPurifierFan(FanEntity):
             mode = status[PHILIPS_MODE]
             self._fan_speed = MODE_MAP.get(mode, mode)
         if PHILIPS_SPEED in status:
-            om = status[PHILIPS_SPEED]
-            om = SPEED_MAP.get(om, om)
-            if om != SPEED_SILENT and self._fan_speed == MODE_MANUAL:
-                self._fan_speed = om
+            speed = status[PHILIPS_SPEED]
+            speed = SPEED_MAP.get(speed, speed)
+            if speed != SPEED_SILENT and self._fan_speed == MODE_MANUAL:
+                self._fan_speed = speed
         if PHILIPS_BRIGHTNESS in status:
             self._light_brightness = status[PHILIPS_BRIGHTNESS]
         if PHILIPS_USED_INDEX in status:
@@ -151,30 +158,37 @@ class PhilipsAirPurifierFan(FanEntity):
 
     @property
     def state(self):
+        """Return device state."""
         return self._state
 
     @property
     def available(self):
+        """Return True when state is known."""
         return self._available
 
     @property
     def unique_id(self):
+        """Return an unique ID."""
         return self._unique_id
 
     @property
     def name(self):
+        """Return the name of the device if any."""
         return self._name
 
     @property
     def icon(self):
+        """Return the default icon for the device."""
         return ICON
 
     @property
     def speed_list(self) -> list:
+        """Get the list of available speeds."""
         return SUPPORTED_SPEED_LIST
 
     @property
     def speed(self) -> str:
+        """Return the current speed."""
         return self._fan_speed
 
     @property
@@ -183,17 +197,20 @@ class PhilipsAirPurifierFan(FanEntity):
         return SUPPORT_SET_SPEED
 
     def turn_on(self, speed: str = None, **kwargs) -> None:
+        """Turn on the fan."""
         if speed is None:
-            values = { PHILIPS_POWER: '1' }
+            values = {PHILIPS_POWER: '1'}
             self.set_values(values)
         else:
             self.set_speed(speed)
 
     def turn_off(self, **kwargs) -> None:
-        values = { PHILIPS_POWER: '0' }
+        """Turn off the fan."""
+        values = {PHILIPS_POWER: '0'}
         self.set_values(values)
 
     def set_speed(self, speed: str):
+        """Set the speed of the fan."""
         values = {}
         if speed == SPEED_TURBO:
             values[PHILIPS_SPEED] = PHILIPS_SPEED_TURBO
@@ -213,41 +230,42 @@ class PhilipsAirPurifierFan(FanEntity):
 
     @property
     def device_state_attributes(self):
+        """Return the state attributes of the device."""
         attr = {}
 
-        if self._model != None:
+        if self._model is not None:
             attr[ATTR_MODEL] = self._model
-        if self._function != None:
+        if self._function is not None:
             attr[ATTR_FUNCTION] = self._function
-        if self._used_index != None:
+        if self._used_index is not None:
             attr[ATTR_USED_INDEX] = self._used_index
-        if self._pm25 != None:
+        if self._pm25 is not None:
             attr[ATTR_PM25] = self._pm25
-        if self._allergen_index != None:
+        if self._allergen_index is not None:
             attr[ATTR_ALLERGEN_INDEX] = self._allergen_index
-        if self._temperature != None:
+        if self._temperature is not None:
             attr[ATTR_TEMPERATURE] = self._temperature
-        if self._humidity != None:
+        if self._humidity is not None:
             attr[ATTR_HUMIDITY] = self._humidity
-        if self._target_humidity != None:
+        if self._target_humidity is not None:
             attr[ATTR_TARGET_HUMIDITY] = self._target_humidity
-        if self._water_level != None:
+        if self._water_level is not None:
             attr[ATTR_WATER_LEVEL] = self._water_level
-        if self._light_brightness != None:
+        if self._light_brightness is not None:
             attr[ATTR_LIGHT_BRIGHTNESS] = self._light_brightness
-        if self._child_lock != None:
+        if self._child_lock is not None:
             attr[ATTR_CHILD_LOCK] = self._child_lock
-        if self._timer != None:
+        if self._timer is not None:
             attr[ATTR_TIMER] = self._timer
-        if self._timer_remaining != None:
+        if self._timer_remaining is not None:
             attr[ATTR_TIMER_REMAINGING_MINUTES] = self._timer_remaining
-        if self._pre_filter != None:
+        if self._pre_filter is not None:
             attr[ATTR_PRE_FILTER] = self._pre_filter
-        if self._wick_filter != None:
+        if self._wick_filter is not None:
             attr[ATTR_WICK_FILTER] = self._wick_filter
-        if self._carbon_filter != None:
+        if self._carbon_filter is not None:
             attr[ATTR_CARBON_FILTER] = self._carbon_filter
-        if self._hepa_filter != None:
+        if self._hepa_filter is not None:
             attr[ATTR_HEPA_FILTER] = self._hepa_filter
 
         return attr
@@ -256,13 +274,15 @@ class PhilipsAirPurifierFan(FanEntity):
     ### Other methods ###
 
     def set_values(self, values):
+        """Update device state."""
         body = encrypt(values, self._session_key)
         url = 'http://{}/di/v1/products/1/air'.format(self._host)
         req = urllib.request.Request(url=url, data=body, method='PUT')
         with urllib.request.urlopen(req) as response:
-            resp = response.read()
+            response.read()
 
     def _get_key(self):
+        # pylint: disable=invalid-name
         url = 'http://{}/di/v1/products/0/security'.format(self._host)
         a = random.getrandbits(256)
         A = pow(G, a, P)
@@ -288,6 +308,6 @@ class PhilipsAirPurifierFan(FanEntity):
     def _get(self, url):
         try:
             return self._get_once(url)
-        except Exception as e:
+        except Exception:
             self._get_key()
             return self._get_once(url)

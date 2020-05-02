@@ -1,3 +1,5 @@
+""" philips-airpurifier constants"""
+
 # Device Attribute Keys
 ATTR_MODEL = "model"
 ATTR_FUNCTION = "function"
