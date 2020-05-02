@@ -40,7 +40,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
 })
 
 AIRPURIFIER_SERVICE_SCHEMA = vol.Schema(
-    {vol.Optional(SERVICE_ATTR_ENTITY_ID): cv.entity_ids}
+    {vol.Required(SERVICE_ATTR_ENTITY_ID): cv.entity_ids}
 )
 
 SERVICE_SET_MODE_SCHEMA = AIRPURIFIER_SERVICE_SCHEMA.extend(
