@@ -52,11 +52,17 @@ SERVICE_SET_FUNCTION_SCHEMA = AIRPURIFIER_SERVICE_SCHEMA.extend(
 )
 
 SERVICE_SET_TARGET_HUMIDITY_SCHEMA = AIRPURIFIER_SERVICE_SCHEMA.extend(
-    {vol.Required(SERVICE_ATTR_HUMIDITY): vol.In(TARGET_HUMIDITY_LIST)}
+    {
+        vol.Required(SERVICE_ATTR_HUMIDITY):
+            vol.All(vol.Coerce(int), vol.In(TARGET_HUMIDITY_LIST))
+    }
 )
 
 SERVICE_SET_LIGHT_BRIGHTNESS_SCHEMA = AIRPURIFIER_SERVICE_SCHEMA.extend(
-    {vol.Required(SERVICE_ATTR_BRIGHTNESS_LEVEL): vol.In(LIGHT_BRIGHTNESS_LIST)}
+    {
+        vol.Required(SERVICE_ATTR_BRIGHTNESS_LEVEL):
+            vol.All(vol.Coerce(int), vol.In(LIGHT_BRIGHTNESS_LIST))
+    }
 )
 
 SERVICE_SET_CHILD_LOCK_SCHEMA = AIRPURIFIER_SERVICE_SCHEMA.extend(
@@ -64,7 +70,13 @@ SERVICE_SET_CHILD_LOCK_SCHEMA = AIRPURIFIER_SERVICE_SCHEMA.extend(
 )
 
 SERVICE_SET_TIMER_SCHEMA = AIRPURIFIER_SERVICE_SCHEMA.extend(
-    {vol.Required(SERVICE_ATTR_TIMER_HOURS): vol.All(vol.Number(scale=0), vol.Range(min=0, max=12))}
+    {
+        vol.Required(SERVICE_ATTR_TIMER_HOURS): vol.All(
+            vol.Coerce(int),
+            vol.Number(scale=0),
+            vol.Range(min=0, max=12)
+        )
+    }
 )
 
 SERVICE_SET_DISPLAY_LIGHT_SCHEMA = AIRPURIFIER_SERVICE_SCHEMA.extend(
@@ -220,7 +232,8 @@ class PhilipsAirPurifierFan(FanEntity):
             self._light_brightness = status[PHILIPS_LIGHT_BRIGHTNESS]
         if PHILIPS_DISPLAY_LIGHT in status:
             display_light = status[PHILIPS_DISPLAY_LIGHT]
-            self._display_light = DISPLAY_LIGHT_MAP.get(display_light, display_light)
+            self._display_light = DISPLAY_LIGHT_MAP.get(
+                display_light, display_light)
         if PHILIPS_USED_INDEX in status:
             ddp = status[PHILIPS_USED_INDEX]
             self._used_index = USED_INDEX_MAP.get(ddp, ddp)
@@ -317,7 +330,8 @@ class PhilipsAirPurifierFan(FanEntity):
         """Set the light brightness of the fan."""
         values = {}
         values[PHILIPS_LIGHT_BRIGHTNESS] = level
-        values[PHILIPS_DISPLAY_LIGHT] = self._find_key(DISPLAY_LIGHT_MAP, level != 0)
+        values[PHILIPS_DISPLAY_LIGHT] = self._find_key(
+            DISPLAY_LIGHT_MAP, level != 0)
         self.set_values(values)
 
     def set_child_lock(self, lock: bool):
