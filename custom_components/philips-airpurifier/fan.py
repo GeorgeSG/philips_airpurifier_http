@@ -49,6 +49,7 @@ class PhilipsAirPurifierFan(FanEntity):
         self._name = config[CONF_NAME]
         self._available = False
         self._state = None
+        self._model = None
         self._session_key = None
 
         self._fan_speed = None
@@ -69,6 +70,9 @@ class PhilipsAirPurifierFan(FanEntity):
         self._water_level = None
         self._child_lock = None
         self._timer = None
+        self._timer_remaining = None
+
+        self._unique_id = None
 
         self.update()
 
@@ -78,6 +82,7 @@ class PhilipsAirPurifierFan(FanEntity):
         try:
             self._update_filters()
             self._update_state()
+            self._update_model()
             self._available = True
         except Exception as ex:
             self._available = False
@@ -91,6 +96,17 @@ class PhilipsAirPurifierFan(FanEntity):
             self._wick_filter = filters['wicksts']
         self._carbon_filter = filters['fltsts2']
         self._hepa_filter = filters['fltsts1']
+
+    def _update_model(self):
+        url = 'http://{}/di/v1/products/0/firmware'.format(self._host)
+        firmware = self._get(url)
+        if PHILIPS_MODEL_NAME in firmware:
+            self._model = firmware[PHILIPS_MODEL_NAME]
+
+        url = 'http://{}/di/v1/products/0/wifi'.format(self._host)
+        wifi = self._get(url)
+        if PHILIPS_MAC_ADDRESS in wifi:
+            self._unique_id = wifi[PHILIPS_MAC_ADDRESS]
 
     def _update_state(self):
         url = 'http://{}/di/v1/products/1/air'.format(self._host)
@@ -129,7 +145,8 @@ class PhilipsAirPurifierFan(FanEntity):
             self._child_lock = status[PHILIPS_CHILD_LOCK]
         if PHILIPS_TIMER in status:
             self._timer = status[PHILIPS_TIMER]
-
+        if PHILIPS_TIMER_REMAINING in status:
+            self._timer_remaining = status[PHILIPS_TIMER_REMAINING]
 
     ### Properties ###
 
@@ -140,6 +157,10 @@ class PhilipsAirPurifierFan(FanEntity):
     @property
     def available(self):
         return self._available
+
+    @property
+    def unique_id(self):
+        return self._unique_id
 
     @property
     def name(self):
@@ -193,23 +214,44 @@ class PhilipsAirPurifierFan(FanEntity):
 
     @property
     def device_state_attributes(self):
-        return {
-            ATTR_FUNCTION: self._function,
-            ATTR_USED_INDEX: self._used_index,
-            ATTR_PM25: self._pm25,
-            ATTR_ALLERGEN_INDEX: self._allergen_index,
-            ATTR_TEMPERATURE: self._temperature,
-            ATTR_HUMIDITY: self._humidity,
-            ATTR_TARGET_HUMIDITY: self._target_humidity,
-            ATTR_WATER_LEVEL: self._water_level,
-            ATTR_LIGHT_BRIGHTNESS: self._light_brightness,
-            ATTR_CHILD_LOCK: self._child_lock,
-            ATTR_TIMER: self._timer,
-            ATTR_PRE_FILTER: self._pre_filter,
-            ATTR_WICK_FILTER: self._wick_filter,
-            ATTR_CARBON_FILTER: self._carbon_filter,
-            ATTR_HEPA_FILTER: self._hepa_filter,
-        }
+        attr = {}
+
+        if self._model != None:
+            attr[ATTR_MODEL] = self._model
+        if self._function != None:
+            attr[ATTR_FUNCTION] = self._function
+        if self._used_index != None:
+            attr[ATTR_USED_INDEX] = self._used_index
+        if self._pm25 != None:
+            attr[ATTR_PM25] = self._pm25
+        if self._allergen_index != None:
+            attr[ATTR_ALLERGEN_INDEX] = self._allergen_index
+        if self._temperature != None:
+            attr[ATTR_TEMPERATURE] = self._temperature
+        if self._humidity != None:
+            attr[ATTR_HUMIDITY] = self._humidity
+        if self._target_humidity != None:
+            attr[ATTR_TARGET_HUMIDITY] = self._target_humidity
+        if self._water_level != None:
+            attr[ATTR_WATER_LEVEL] = self._water_level
+        if self._light_brightness != None:
+            attr[ATTR_LIGHT_BRIGHTNESS] = self._light_brightness
+        if self._child_lock != None:
+            attr[ATTR_CHILD_LOCK] = self._child_lock
+        if self._timer != None:
+            attr[ATTR_TIMER] = self._timer
+        if self._timer_remaining != None:
+            attr[ATTR_TIMER_REMAINGING_MINUTES] = self._timer_remaining
+        if self._pre_filter != None:
+            attr[ATTR_PRE_FILTER] = self._pre_filter
+        if self._wick_filter != None:
+            attr[ATTR_WICK_FILTER] = self._wick_filter
+        if self._carbon_filter != None:
+            attr[ATTR_CARBON_FILTER] = self._carbon_filter
+        if self._hepa_filter != None:
+            attr[ATTR_HEPA_FILTER] = self._hepa_filter
+
+        return attr
 
 
     ### Other methods ###

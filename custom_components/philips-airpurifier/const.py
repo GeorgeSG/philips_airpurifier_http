@@ -1,4 +1,5 @@
 # Device Attribute Keys
+ATTR_MODEL = "model"
 ATTR_FUNCTION = "function"
 ATTR_USED_INDEX = "used_index"
 ATTR_PM25 = "pm25"
@@ -10,6 +11,7 @@ ATTR_WATER_LEVEL = "water_level"
 ATTR_LIGHT_BRIGHTNESS = "light_brightness"
 ATTR_CHILD_LOCK = "child_lock"
 ATTR_TIMER = "timer"
+ATTR_TIMER_REMAINGING_MINUTES = "timer_remaining_minutes"
 ATTR_PRE_FILTER = "pre_filter"
 ATTR_WICK_FILTER = "wick_filter"
 ATTR_CARBON_FILTER = "carbon_filter"
@@ -28,8 +30,12 @@ PHILIPS_SPEED = 'om'
 PHILIPS_TARGET_HUMIDITY = 'rhset'
 PHILIPS_TEMPERATURE = 'temp'
 PHILIPS_TIMER = 'dt'
+PHILIPS_TIMER_REMAINING = 'dtrs'
 PHILIPS_USED_INDEX = 'ddp'
 PHILIPS_WATER_LEVEL = 'wl'
+
+PHILIPS_MODEL_NAME = 'name'
+PHILIPS_MAC_ADDRESS = 'mac'
 
 # Philips API Values
 PHILIPS_SPEED_SILENT = 's'
