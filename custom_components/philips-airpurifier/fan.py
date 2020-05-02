@@ -1,8 +1,9 @@
 """Support for Phillips Air Purifiers and Humidifiers."""
 
-import urllib.request
 import json
+import logging
 import random
+import urllib.request
 
 import voluptuous as vol
 
@@ -31,23 +32,97 @@ from .const import *
 
 __version__ = '0.3.5'
 
-DEFAULT_NAME = 'Philips AirPurifier'
-ICON = 'mdi:air-purifier'
+_LOGGER = logging.getLogger(__name__)
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_HOST): cv.string,
     vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
 })
 
-### Setup Platform ###
+AIRPURIFIER_SERVICE_SCHEMA = vol.Schema(
+    {vol.Optional(SERVICE_ATTR_ENTITY_ID): cv.entity_ids}
+)
 
-def setup_platform(hass, config, add_devices, discovery_info=None):
-    """Setup philips-airpurifier platform."""
-    add_devices([PhilipsAirPurifierFan(hass, config)])
+SERVICE_SET_MODE_SCHEMA = AIRPURIFIER_SERVICE_SCHEMA.extend(
+    {vol.Required(SERVICE_ATTR_MODE): vol.In(MODE_MAP.values())}
+)
+
+SERVICE_SET_FUNCTION_SCHEMA = AIRPURIFIER_SERVICE_SCHEMA.extend(
+    {vol.Required(SERVICE_ATTR_FUNCTION): vol.In(FUNCTION_MAP.values())}
+)
+
+SERVICE_SET_TARGET_HUMIDITY_SCHEMA = AIRPURIFIER_SERVICE_SCHEMA.extend(
+    {vol.Required(SERVICE_ATTR_HUMIDITY): vol.In(TARGET_HUMIDITY_LIST)}
+)
+
+SERVICE_SET_LIGHT_BRIGHTNESS_SCHEMA = AIRPURIFIER_SERVICE_SCHEMA.extend(
+    {vol.Required(SERVICE_ATTR_BRIGHTNESS_LEVEL): vol.In(LIGHT_BRIGHTNESS_LIST)}
+)
+
+SERVICE_SET_CHILD_LOCK_SCHEMA = AIRPURIFIER_SERVICE_SCHEMA.extend(
+    {vol.Required(SERVICE_ATTR_CHILD_LOCK): cv.boolean}
+)
+
+SERVICE_SET_TIMER_SCHEMA = AIRPURIFIER_SERVICE_SCHEMA.extend(
+    {vol.Required(SERVICE_ATTR_TIMER_HOURS): vol.All(vol.Number(scale=0), vol.Range(min=0, max=12))}
+)
+
+SERVICE_SET_DISPLAY_LIGHT_SCHEMA = AIRPURIFIER_SERVICE_SCHEMA.extend(
+    {vol.Required(SERVICE_ATTR_DISPLAY_LIGHT): cv.boolean}
+)
+
+AIR_PURIFIER_SERVICES = {
+    SERVICE_SET_MODE: SERVICE_SET_MODE_SCHEMA,
+    SERVICE_SET_FUNCTION: SERVICE_SET_FUNCTION_SCHEMA,
+    SERVICE_SET_TARGET_HUMIDITY: SERVICE_SET_TARGET_HUMIDITY_SCHEMA,
+    SERVICE_SET_LIGHT_BRIGHTNESS: SERVICE_SET_LIGHT_BRIGHTNESS_SCHEMA,
+    SERVICE_SET_CHILD_LOCK: SERVICE_SET_CHILD_LOCK_SCHEMA,
+    SERVICE_SET_TIMER: SERVICE_SET_TIMER_SCHEMA,
+    SERVICE_SET_DISPLAY_LIGHT: SERVICE_SET_DISPLAY_LIGHT_SCHEMA,
+}
+
+
+def setup_platform(hass, config, add_entities, discovery_info=None):
+    """Set up the philips_airpurifier platform."""
+    device = PhilipsAirPurifierFan(hass, config)
+
+    if DATA_PHILIPS_FANS not in hass.data:
+        hass.data[DATA_PHILIPS_FANS] = []
+
+    hass.data[DATA_PHILIPS_FANS].append(device)
+
+    add_entities(hass.data[DATA_PHILIPS_FANS])
+
+    def service_handler(service):
+        entity_ids = service.data.get(SERVICE_ATTR_ENTITY_ID)
+
+        # Params to set to method handler. Drop entity_id.
+        params = {
+            key: value for key, value in service.data.items() if key != SERVICE_ATTR_ENTITY_ID
+        }
+
+        if entity_ids:
+            devices = [
+                device
+                for device in hass.data[DATA_PHILIPS_FANS]
+                if device.entity_id in entity_ids
+            ]
+        else:
+            devices = hass.data[DATA_PHILIPS_FANS]
+
+        for device in devices:
+            # Use the same method name as the service name.
+            # Assumes that if there's a service "set_mode", device will have a "set_mode" method.
+            if not hasattr(device, service.service):
+                continue
+            getattr(device, service.service)(**params)
+
+    for service, schema in AIR_PURIFIER_SERVICES.items():
+        hass.services.register(DOMAIN, service, service_handler, schema=schema)
 
 
 class PhilipsAirPurifierFan(FanEntity):
-    """philips-aurpurifier fan entity."""
+    """philips_aurpurifier fan entity."""
 
     def __init__(self, hass, config):
         self.hass = hass
@@ -74,6 +149,7 @@ class PhilipsAirPurifierFan(FanEntity):
         self._temperature = None
         self._function = None
         self._light_brightness = None
+        self._display_light = None
         self._used_index = None
         self._water_level = None
         self._child_lock = None
@@ -140,8 +216,11 @@ class PhilipsAirPurifierFan(FanEntity):
             speed = SPEED_MAP.get(speed, speed)
             if speed != SPEED_SILENT and self._fan_speed == MODE_MANUAL:
                 self._fan_speed = speed
-        if PHILIPS_BRIGHTNESS in status:
-            self._light_brightness = status[PHILIPS_BRIGHTNESS]
+        if PHILIPS_LIGHT_BRIGHTNESS in status:
+            self._light_brightness = status[PHILIPS_LIGHT_BRIGHTNESS]
+        if PHILIPS_DISPLAY_LIGHT in status:
+            display_light = status[PHILIPS_DISPLAY_LIGHT]
+            self._display_light = DISPLAY_LIGHT_MAP.get(display_light, display_light)
         if PHILIPS_USED_INDEX in status:
             ddp = status[PHILIPS_USED_INDEX]
             self._used_index = USED_INDEX_MAP.get(ddp, ddp)
@@ -179,7 +258,7 @@ class PhilipsAirPurifierFan(FanEntity):
     @property
     def icon(self):
         """Return the default icon for the device."""
-        return ICON
+        return DEFAULT_ICON
 
     @property
     def speed_list(self) -> list:
@@ -211,22 +290,48 @@ class PhilipsAirPurifierFan(FanEntity):
 
     def set_speed(self, speed: str):
         """Set the speed of the fan."""
+        if speed in SPEED_MAP.values():
+            philips_speed = self._find_key(SPEED_MAP, speed)
+            self.set_values({PHILIPS_SPEED: philips_speed})
+        elif speed in MODE_MAP.values():
+            philips_mode = self._find_key(MODE_MAP, speed)
+            self.set_values({PHILIPS_MODE: philips_mode})
+        else:
+            _LOGGER.warning("Unsupported speed %s", speed)
+
+    def set_mode(self, mode: str):
+        """Set the mode of the fan."""
+        philips_mode = self._find_key(MODE_MAP, mode)
+        self.set_values({PHILIPS_MODE: philips_mode})
+
+    def set_function(self, function: str):
+        """Set the function of the fan."""
+        philips_function = self._find_key(FUNCTION_MAP, function)
+        self.set_values({PHILIPS_FUNCTION: philips_function})
+
+    def set_target_humidity(self, humidity: int):
+        """Set the target humidity of the fan."""
+        self.set_values({PHILIPS_TARGET_HUMIDITY: humidity})
+
+    def set_light_brightness(self, level: int):
+        """Set the light brightness of the fan."""
         values = {}
-        if speed == SPEED_TURBO:
-            values[PHILIPS_SPEED] = PHILIPS_SPEED_TURBO
-        elif speed == SPEED_1:
-            values[PHILIPS_SPEED] = '1'
-        elif speed == SPEED_2:
-            values[PHILIPS_SPEED] = '2'
-        elif speed == SPEED_3:
-            values[PHILIPS_SPEED] = '3'
-        elif speed == MODE_AUTO:
-            values[PHILIPS_MODE] = PHILIPS_MODE_AUTO
-        elif speed == MODE_ALLERGEN:
-            values[PHILIPS_MODE] = PHILIPS_MODE_ALLERGEN
-        elif speed == MODE_SLEEP:
-            values[PHILIPS_MODE] = PHILIPS_MODE_SLEEP
+        values[PHILIPS_LIGHT_BRIGHTNESS] = level
+        values[PHILIPS_DISPLAY_LIGHT] = self._find_key(DISPLAY_LIGHT_MAP, level != 0)
         self.set_values(values)
+
+    def set_child_lock(self, lock: bool):
+        """Set the child lock of the fan."""
+        self.set_values({PHILIPS_CHILD_LOCK: lock})
+
+    def set_timer(self, hours: int):
+        """Set the off timer of the fan."""
+        self.set_values({PHILIPS_TIMER: hours})
+
+    def set_display_light(self, light: bool):
+        """Set the display light of the fan."""
+        light = self._find_key(DISPLAY_LIGHT_MAP, light)
+        self.set_values({PHILIPS_DISPLAY_LIGHT: light})
 
     @property
     def device_state_attributes(self):
@@ -253,6 +358,8 @@ class PhilipsAirPurifierFan(FanEntity):
             attr[ATTR_WATER_LEVEL] = self._water_level
         if self._light_brightness is not None:
             attr[ATTR_LIGHT_BRIGHTNESS] = self._light_brightness
+        if self._display_light is not None:
+            attr[ATTR_DISPLAY_LIGHT] = self._display_light
         if self._child_lock is not None:
             attr[ATTR_CHILD_LOCK] = self._child_lock
         if self._timer is not None:
@@ -269,7 +376,6 @@ class PhilipsAirPurifierFan(FanEntity):
             attr[ATTR_HEPA_FILTER] = self._hepa_filter
 
         return attr
-
 
     ### Other methods ###
 
@@ -311,3 +417,9 @@ class PhilipsAirPurifierFan(FanEntity):
         except Exception:
             self._get_key()
             return self._get_once(url)
+
+    def _find_key(self, value_map, search_value):
+        if search_value in value_map.values():
+            return [key for key, value in value_map.items() if value == search_value][0]
+
+        return None

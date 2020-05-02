@@ -1,5 +1,5 @@
 {
-  "domain": "philips-airpurifier",
+  "domain": "philips_airpurifier",
   "name": "Philips AirPurifier",
   "documentation": "https://github.com/xMrVizzy/philips-airpurifier",
   "dependencies": [],
