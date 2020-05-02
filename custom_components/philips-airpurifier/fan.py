@@ -120,10 +120,9 @@ class PhilipsAirPurifierFan(FanEntity):
                 self._fan_speed = om
         if PHILIPS_BRIGHTNESS in status:
             self._light_brightness = status[PHILIPS_BRIGHTNESS]
-        if 'ddp' in status:
-            ddp = status['ddp']
-            ddp_str = {'1': 'PM2.5', '0': 'IAI'}
-            self._used_index = ddp_str.get(ddp, ddp)
+        if PHILIPS_USED_INDEX in status:
+            ddp = status[PHILIPS_USED_INDEX]
+            self._used_index = USED_INDEX_MAP.get(ddp, ddp)
         if PHILIPS_WATER_LEVEL in status:
             self._water_level = status[PHILIPS_WATER_LEVEL]
         if PHILIPS_CHILD_LOCK in status:
