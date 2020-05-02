@@ -47,6 +47,7 @@ class PhilipsAirPurifierFan(FanEntity):
         self.hass = hass
         self._host = config[CONF_HOST]
         self._name = config[CONF_NAME]
+        self._available = False
         self._state = None
         self._session_key = None
 
@@ -74,7 +75,24 @@ class PhilipsAirPurifierFan(FanEntity):
     ### Update Fan attributes ###
 
     def update(self):
-        self._update_filters()
+        try:
+            self._update_filters()
+            self._update_state()
+            self._available = True
+        except Exception as ex:
+            self._available = False
+
+
+    def _update_filters(self):
+        url = 'http://{}/di/v1/products/1/fltsts'.format(self._host)
+        filters = self._get(url)
+        self._pre_filter = filters['fltsts0']
+        if 'wicksts' in filters:
+            self._wick_filter = filters['wicksts']
+        self._carbon_filter = filters['fltsts2']
+        self._hepa_filter = filters['fltsts1']
+
+    def _update_state(self):
         url = 'http://{}/di/v1/products/1/air'.format(self._host)
         status = self._get(url)
         if PHILIPS_POWER in status:
@@ -113,20 +131,16 @@ class PhilipsAirPurifierFan(FanEntity):
         if PHILIPS_TIMER in status:
             self._timer = status[PHILIPS_TIMER]
 
-    def _update_filters(self):
-        url = 'http://{}/di/v1/products/1/fltsts'.format(self._host)
-        filters = self._get(url)
-        self._pre_filter = filters['fltsts0']
-        if 'wicksts' in filters:
-            self._wick_filter = filters['wicksts']
-        self._carbon_filter = filters['fltsts2']
-        self._hepa_filter = filters['fltsts1']
 
     ### Properties ###
 
     @property
     def state(self):
         return self._state
+
+    @property
+    def available(self):
+        return self._available
 
     @property
     def name(self):
