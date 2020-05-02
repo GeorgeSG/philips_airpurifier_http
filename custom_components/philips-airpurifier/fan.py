@@ -47,6 +47,8 @@ class PhilipsAirPurifierFan(FanEntity):
         self.hass = hass
         self._host = config[CONF_HOST]
         self._name = config[CONF_NAME]
+
+        self._unique_id = None
         self._available = False
         self._state = None
         self._model = None
@@ -72,8 +74,6 @@ class PhilipsAirPurifierFan(FanEntity):
         self._timer = None
         self._timer_remaining = None
 
-        self._unique_id = None
-
         self.update()
 
     ### Update Fan attributes ###
@@ -86,7 +86,6 @@ class PhilipsAirPurifierFan(FanEntity):
             self._available = True
         except Exception as ex:
             self._available = False
-
 
     def _update_filters(self):
         url = 'http://{}/di/v1/products/1/fltsts'.format(self._host)
