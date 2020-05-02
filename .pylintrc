@@ -1,0 +1,9 @@
+[MASTER]
+ignore=tests
+jobs=2
+persistent=no
+extension-pkg-whitelist=ciso8601
+init-hook='import sys; sys.path.append("./custom_components/philips-airpurifier");'
+
+[BASIC]
+good-names=iv,ex
