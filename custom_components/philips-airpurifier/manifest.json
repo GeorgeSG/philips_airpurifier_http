@@ -2,7 +2,6 @@
   "domain": "philips_airpurifier",
   "name": "Philips AirPurifier",
   "documentation": "https://github.com/xMrVizzy/philips-airpurifier",
-  "dependencies": [],
   "codeowners": ["@xMrVizzy"],
-  "requirements": ["pycryptodome"]
+  "requirements": ["py-air-control==2.0.0"]
 }

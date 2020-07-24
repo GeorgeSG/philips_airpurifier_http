@@ -1,12 +1,9 @@
 """Support for Phillips Air Purifiers and Humidifiers."""
 
-import json
+import asyncio
 import logging
-import random
-import urllib.request
-
+from pyairctrl.http_client import HTTPAirClient
 import voluptuous as vol
-
 import homeassistant.helpers.config_validation as cv
 
 from homeassistant.components.fan import (
@@ -20,17 +17,7 @@ from homeassistant.const import (
     CONF_NAME,
 )
 
-from .crypto import (
-    G,
-    P,
-    aes_decrypt,
-    decrypt,
-    encrypt
-)
-
 from .const import *
-
-__version__ = '0.3.5'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -93,19 +80,27 @@ AIR_PURIFIER_SERVICES = {
     SERVICE_SET_DISPLAY_LIGHT: SERVICE_SET_DISPLAY_LIGHT_SCHEMA,
 }
 
-
-def setup_platform(hass, config, add_entities, discovery_info=None):
+async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     """Set up the philips_airpurifier platform."""
-    device = PhilipsAirPurifierFan(hass, config)
+
+    name = config[CONF_NAME]
+    client = HTTPAirClient(config[CONF_HOST])
+    unique_id = None
+
+    wifi = await hass.async_add_executor_job(client.get_wifi)
+    if PHILIPS_MAC_ADDRESS in wifi:
+        unique_id = wifi[PHILIPS_MAC_ADDRESS]
+
+    device = PhilipsAirPurifierFan(hass, client, name, unique_id)
 
     if DATA_PHILIPS_FANS not in hass.data:
         hass.data[DATA_PHILIPS_FANS] = []
 
     hass.data[DATA_PHILIPS_FANS].append(device)
 
-    add_entities(hass.data[DATA_PHILIPS_FANS])
+    async_add_entities(hass.data[DATA_PHILIPS_FANS])
 
-    def service_handler(service):
+    async def async_service_handler(service):
         entity_ids = service.data.get(SERVICE_ATTR_ENTITY_ID)
 
         # Params to set to method handler. Drop entity_id.
@@ -122,26 +117,31 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
         else:
             devices = hass.data[DATA_PHILIPS_FANS]
 
+        update_tasks = []
         for device in devices:
             # Use the same method name as the service name.
             # Assumes that if there's a service "set_mode", device will have a "set_mode" method.
             if not hasattr(device, service.service):
                 continue
             getattr(device, service.service)(**params)
+            update_tasks.append(device.async_update_ha_state(True))
+
+        if update_tasks:
+            await asyncio.wait(update_tasks)
 
     for service, schema in AIR_PURIFIER_SERVICES.items():
-        hass.services.register(DOMAIN, service, service_handler, schema=schema)
+        hass.services.async_register(DOMAIN, service, async_service_handler, schema=schema)
 
 
 class PhilipsAirPurifierFan(FanEntity):
     """philips_aurpurifier fan entity."""
 
-    def __init__(self, hass, config):
+    def __init__(self, hass, client, name, unique_id):
         self.hass = hass
-        self._host = config[CONF_HOST]
-        self._name = config[CONF_NAME]
+        self._client = client
+        self._name = name
 
-        self._unique_id = None
+        self._unique_id = unique_id
         self._available = False
         self._state = None
         self._model = None
@@ -168,43 +168,35 @@ class PhilipsAirPurifierFan(FanEntity):
         self._timer = None
         self._timer_remaining = None
 
-        self.update()
+        self.async_update()
 
     ### Update Fan attributes ###
 
-    def update(self):
+    async def async_update(self):
         """Fetch state from device."""
         try:
-            self._update_filters()
-            self._update_state()
-            self._update_model()
+            await self._update_filters()
+            await self._update_state()
+            await self._update_model()
             self._available = True
         except Exception:
             self._available = False
 
-    def _update_filters(self):
-        url = 'http://{}/di/v1/products/1/fltsts'.format(self._host)
-        filters = self._get(url)
+    async def _update_filters(self):
+        filters = await self.hass.async_add_executor_job(self._client.get_filters)
         self._pre_filter = filters['fltsts0']
         if 'wicksts' in filters:
             self._wick_filter = filters['wicksts']
         self._carbon_filter = filters['fltsts2']
         self._hepa_filter = filters['fltsts1']
 
-    def _update_model(self):
-        url = 'http://{}/di/v1/products/0/firmware'.format(self._host)
-        firmware = self._get(url)
+    async def _update_model(self):
+        firmware = await self.hass.async_add_executor_job(self._client.get_firmware)
         if PHILIPS_MODEL_NAME in firmware:
             self._model = firmware[PHILIPS_MODEL_NAME]
 
-        url = 'http://{}/di/v1/products/0/wifi'.format(self._host)
-        wifi = self._get(url)
-        if PHILIPS_MAC_ADDRESS in wifi:
-            self._unique_id = wifi[PHILIPS_MAC_ADDRESS]
-
-    def _update_state(self):
-        url = 'http://{}/di/v1/products/1/air'.format(self._host)
-        status = self._get(url)
+    async def _update_state(self):
+        status = await self.hass.async_add_executor_job(self._client.get_status)
         if PHILIPS_POWER in status:
             self._state = 'on' if status[PHILIPS_POWER] == '1' else 'off'
         if PHILIPS_PM25 in status:
@@ -292,39 +284,39 @@ class PhilipsAirPurifierFan(FanEntity):
         """Turn on the fan."""
         if speed is None:
             values = {PHILIPS_POWER: '1'}
-            self.set_values(values)
+            self._client.set_values(values)
         else:
             self.set_speed(speed)
 
     def turn_off(self, **kwargs) -> None:
         """Turn off the fan."""
         values = {PHILIPS_POWER: '0'}
-        self.set_values(values)
+        self._client.set_values(values)
 
     def set_speed(self, speed: str):
         """Set the speed of the fan."""
         if speed in SPEED_MAP.values():
             philips_speed = self._find_key(SPEED_MAP, speed)
-            self.set_values({PHILIPS_SPEED: philips_speed})
+            self._client.set_values({PHILIPS_SPEED: philips_speed})
         elif speed in MODE_MAP.values():
             philips_mode = self._find_key(MODE_MAP, speed)
-            self.set_values({PHILIPS_MODE: philips_mode})
+            self._client.set_values({PHILIPS_MODE: philips_mode})
         else:
             _LOGGER.warning("Unsupported speed %s", speed)
 
     def set_mode(self, mode: str):
         """Set the mode of the fan."""
         philips_mode = self._find_key(MODE_MAP, mode)
-        self.set_values({PHILIPS_MODE: philips_mode})
+        self._client.set_values({PHILIPS_MODE: philips_mode})
 
     def set_function(self, function: str):
         """Set the function of the fan."""
         philips_function = self._find_key(FUNCTION_MAP, function)
-        self.set_values({PHILIPS_FUNCTION: philips_function})
+        self._client.set_values({PHILIPS_FUNCTION: philips_function})
 
     def set_target_humidity(self, humidity: int):
         """Set the target humidity of the fan."""
-        self.set_values({PHILIPS_TARGET_HUMIDITY: humidity})
+        self._client.set_values({PHILIPS_TARGET_HUMIDITY: humidity})
 
     def set_light_brightness(self, level: int):
         """Set the light brightness of the fan."""
@@ -332,20 +324,20 @@ class PhilipsAirPurifierFan(FanEntity):
         values[PHILIPS_LIGHT_BRIGHTNESS] = level
         values[PHILIPS_DISPLAY_LIGHT] = self._find_key(
             DISPLAY_LIGHT_MAP, level != 0)
-        self.set_values(values)
+        self._client.set_values(values)
 
     def set_child_lock(self, lock: bool):
         """Set the child lock of the fan."""
-        self.set_values({PHILIPS_CHILD_LOCK: lock})
+        self._client.set_values({PHILIPS_CHILD_LOCK: lock})
 
     def set_timer(self, hours: int):
         """Set the off timer of the fan."""
-        self.set_values({PHILIPS_TIMER: hours})
+        self._client.set_values({PHILIPS_TIMER: hours})
 
     def set_display_light(self, light: bool):
         """Set the display light of the fan."""
         light = self._find_key(DISPLAY_LIGHT_MAP, light)
-        self.set_values({PHILIPS_DISPLAY_LIGHT: light})
+        self._client.set_values({PHILIPS_DISPLAY_LIGHT: light})
 
     @property
     def device_state_attributes(self):
@@ -390,47 +382,6 @@ class PhilipsAirPurifierFan(FanEntity):
             attr[ATTR_HEPA_FILTER] = self._hepa_filter
 
         return attr
-
-    ### Other methods ###
-
-    def set_values(self, values):
-        """Update device state."""
-        body = encrypt(values, self._session_key)
-        url = 'http://{}/di/v1/products/1/air'.format(self._host)
-        req = urllib.request.Request(url=url, data=body, method='PUT')
-        with urllib.request.urlopen(req) as response:
-            response.read()
-
-    def _get_key(self):
-        # pylint: disable=invalid-name
-        url = 'http://{}/di/v1/products/0/security'.format(self._host)
-        a = random.getrandbits(256)
-        A = pow(G, a, P)
-        data = json.dumps({'diffie': format(A, 'x')})
-        data_enc = data.encode('ascii')
-        req = urllib.request.Request(url=url, data=data_enc, method='PUT')
-        with urllib.request.urlopen(req) as response:
-            resp = response.read().decode('ascii')
-            dh = json.loads(resp)
-        key = dh['key']
-        B = int(dh['hellman'], 16)
-        s = pow(B, a, P)
-        s_bytes = s.to_bytes(128, byteorder='big')[:16]
-        session_key = aes_decrypt(bytes.fromhex(key), s_bytes)
-        self._session_key = session_key[:16]
-
-    def _get_once(self, url):
-        with urllib.request.urlopen(url) as response:
-            resp = response.read()
-            resp = decrypt(resp.decode('ascii'), self._session_key)
-            return json.loads(resp)
-
-    def _get(self, url):
-        try:
-            return self._get_once(url)
-        except Exception:
-            self._get_key()
-            return self._get_once(url)
 
     def _find_key(self, value_map, search_value):
         if search_value in value_map.values():
