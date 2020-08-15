@@ -3,5 +3,5 @@
   "name": "Philips AirPurifier",
   "documentation": "https://github.com/xMrVizzy/philips-airpurifier",
   "codeowners": ["@xMrVizzy"],
-  "requirements": ["py-air-control==2.0.0"]
+  "requirements": ["py-air-control==2.1.0"]
 }

@@ -3,6 +3,7 @@
 import asyncio
 import logging
 from pyairctrl.http_client import HTTPAirClient
+from functools import partial
 import voluptuous as vol
 import homeassistant.helpers.config_validation as cv
 
@@ -70,21 +71,42 @@ SERVICE_SET_DISPLAY_LIGHT_SCHEMA = AIRPURIFIER_SERVICE_SCHEMA.extend(
     {vol.Required(SERVICE_ATTR_DISPLAY_LIGHT): cv.boolean}
 )
 
-AIR_PURIFIER_SERVICES = {
-    SERVICE_SET_MODE: SERVICE_SET_MODE_SCHEMA,
-    SERVICE_SET_FUNCTION: SERVICE_SET_FUNCTION_SCHEMA,
-    SERVICE_SET_TARGET_HUMIDITY: SERVICE_SET_TARGET_HUMIDITY_SCHEMA,
-    SERVICE_SET_LIGHT_BRIGHTNESS: SERVICE_SET_LIGHT_BRIGHTNESS_SCHEMA,
-    SERVICE_SET_CHILD_LOCK: SERVICE_SET_CHILD_LOCK_SCHEMA,
-    SERVICE_SET_TIMER: SERVICE_SET_TIMER_SCHEMA,
-    SERVICE_SET_DISPLAY_LIGHT: SERVICE_SET_DISPLAY_LIGHT_SCHEMA,
+SERVICE_TO_METHOD = {
+    SERVICE_SET_MODE: {
+        "method": "async_set_mode",
+        "schema": SERVICE_SET_MODE_SCHEMA
+    },
+    SERVICE_SET_FUNCTION: {
+        "method": "async_set_function",
+        "schema": SERVICE_SET_FUNCTION_SCHEMA
+    },
+    SERVICE_SET_TARGET_HUMIDITY: {
+        "method": "async_set_target_humidity",
+        "schema": SERVICE_SET_TARGET_HUMIDITY_SCHEMA
+    },
+    SERVICE_SET_LIGHT_BRIGHTNESS: {
+        "method": "async_set_light_brightness",
+        "schema": SERVICE_SET_LIGHT_BRIGHTNESS_SCHEMA
+    },
+    SERVICE_SET_CHILD_LOCK: {
+        "method": "async_set_child_lock",
+        "schema": SERVICE_SET_CHILD_LOCK_SCHEMA
+    },
+    SERVICE_SET_TIMER: {
+        "method": "async_set_timer",
+        "schema": SERVICE_SET_TIMER_SCHEMA
+    },
+    SERVICE_SET_DISPLAY_LIGHT: {
+        "method": "async_set_display_light",
+        "schema": SERVICE_SET_DISPLAY_LIGHT_SCHEMA
+    },
 }
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     """Set up the philips_airpurifier platform."""
 
     name = config[CONF_NAME]
-    client = HTTPAirClient(config[CONF_HOST])
+    client = HTTPAirClient(config[CONF_HOST], False)
     unique_id = None
 
     wifi = await hass.async_add_executor_job(client.get_wifi)
@@ -102,6 +124,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
     async def async_service_handler(service):
         entity_ids = service.data.get(SERVICE_ATTR_ENTITY_ID)
+        method = SERVICE_TO_METHOD.get(service.service)["method"]
 
         # Params to set to method handler. Drop entity_id.
         params = {
@@ -121,16 +144,19 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         for device in devices:
             # Use the same method name as the service name.
             # Assumes that if there's a service "set_mode", device will have a "set_mode" method.
-            if not hasattr(device, service.service):
+            if not hasattr(device, method):
                 continue
-            getattr(device, service.service)(**params)
+            await getattr(device, method)(**params)
             update_tasks.append(device.async_update_ha_state(True))
 
         if update_tasks:
             await asyncio.wait(update_tasks)
 
-    for service, schema in AIR_PURIFIER_SERVICES.items():
-        hass.services.async_register(DOMAIN, service, async_service_handler, schema=schema)
+    for air_purifier_service in SERVICE_TO_METHOD:
+        schema = SERVICE_TO_METHOD[air_purifier_service].get("schema", AIRPURIFIER_SERVICE_SCHEMA)
+        hass.services.async_register(
+            DOMAIN, air_purifier_service, async_service_handler, schema=schema
+        )
 
 
 class PhilipsAirPurifierFan(FanEntity):
@@ -167,8 +193,6 @@ class PhilipsAirPurifierFan(FanEntity):
         self._child_lock = None
         self._timer = None
         self._timer_remaining = None
-
-        self.async_update()
 
     ### Update Fan attributes ###
 
@@ -280,64 +304,64 @@ class PhilipsAirPurifierFan(FanEntity):
         """Flag supported features."""
         return SUPPORT_SET_SPEED
 
-    def turn_on(self, speed: str = None, **kwargs) -> None:
+    async def async_turn_on(self, speed: str = None, **kwargs) -> None:
         """Turn on the fan."""
         if speed is None:
             values = {PHILIPS_POWER: '1'}
-            self._client.set_values(values)
+            await self._async_set_values(values)
         else:
             self.set_speed(speed)
 
-    def turn_off(self, **kwargs) -> None:
+    async def async_turn_off(self, **kwargs) -> None:
         """Turn off the fan."""
         values = {PHILIPS_POWER: '0'}
-        self._client.set_values(values)
+        await self._async_set_values(values)
 
-    def set_speed(self, speed: str):
+    async def async_set_speed(self, speed: str):
         """Set the speed of the fan."""
         if speed in SPEED_MAP.values():
             philips_speed = self._find_key(SPEED_MAP, speed)
-            self._client.set_values({PHILIPS_SPEED: philips_speed})
+            await self._async_set_values({PHILIPS_SPEED: philips_speed})
         elif speed in MODE_MAP.values():
             philips_mode = self._find_key(MODE_MAP, speed)
-            self._client.set_values({PHILIPS_MODE: philips_mode})
+            await self._async_set_values({PHILIPS_MODE: philips_mode})
         else:
             _LOGGER.warning("Unsupported speed %s", speed)
 
-    def set_mode(self, mode: str):
+    async def async_set_mode(self, mode: str):
         """Set the mode of the fan."""
         philips_mode = self._find_key(MODE_MAP, mode)
-        self._client.set_values({PHILIPS_MODE: philips_mode})
+        await self._async_set_values({PHILIPS_MODE: philips_mode})
 
-    def set_function(self, function: str):
+    async def async_set_function(self, function: str):
         """Set the function of the fan."""
         philips_function = self._find_key(FUNCTION_MAP, function)
-        self._client.set_values({PHILIPS_FUNCTION: philips_function})
+        await self._async_set_values({PHILIPS_FUNCTION: philips_function})
 
-    def set_target_humidity(self, humidity: int):
+    async def async_set_target_humidity(self, humidity: int):
         """Set the target humidity of the fan."""
-        self._client.set_values({PHILIPS_TARGET_HUMIDITY: humidity})
+        await self._async_set_values({PHILIPS_TARGET_HUMIDITY: humidity})
 
-    def set_light_brightness(self, level: int):
+    async def async_set_light_brightness(self, level: int):
         """Set the light brightness of the fan."""
         values = {}
         values[PHILIPS_LIGHT_BRIGHTNESS] = level
         values[PHILIPS_DISPLAY_LIGHT] = self._find_key(
             DISPLAY_LIGHT_MAP, level != 0)
-        self._client.set_values(values)
+        await self._async_set_values(values)
 
-    def set_child_lock(self, lock: bool):
+    async def async_set_child_lock(self, lock: bool):
         """Set the child lock of the fan."""
-        self._client.set_values({PHILIPS_CHILD_LOCK: lock})
+        await self._async_set_values({PHILIPS_CHILD_LOCK: lock})
 
-    def set_timer(self, hours: int):
+    async def async_set_timer(self, hours: int):
         """Set the off timer of the fan."""
-        self._client.set_values({PHILIPS_TIMER: hours})
+        await self._async_set_values({PHILIPS_TIMER: hours})
 
-    def set_display_light(self, light: bool):
+    async def async_set_display_light(self, light: bool):
         """Set the display light of the fan."""
         light = self._find_key(DISPLAY_LIGHT_MAP, light)
-        self._client.set_values({PHILIPS_DISPLAY_LIGHT: light})
+        await self._async_set_values({PHILIPS_DISPLAY_LIGHT: light})
 
     @property
     def device_state_attributes(self):
@@ -382,6 +406,11 @@ class PhilipsAirPurifierFan(FanEntity):
             attr[ATTR_HEPA_FILTER] = self._hepa_filter
 
         return attr
+
+    async def _async_set_values(self, values):
+        await self.hass.async_add_executor_job(
+            partial(self._client.set_values, values)
+        )
 
     def _find_key(self, value_map, search_value):
         if search_value in value_map.values():
