@@ -124,7 +124,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
     async def async_service_handler(service):
         entity_ids = service.data.get(SERVICE_ATTR_ENTITY_ID)
-        method = SERVICE_TO_METHOD.get(service.service)["method"]
+        service_method = SERVICE_TO_METHOD.get(service.service)["method"]
 
         # Params to set to method handler. Drop entity_id.
         params = {
@@ -142,11 +142,9 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
         update_tasks = []
         for device in devices:
-            # Use the same method name as the service name.
-            # Assumes that if there's a service "set_mode", device will have a "set_mode" method.
-            if not hasattr(device, method):
+            if not hasattr(device, service_method):
                 continue
-            await getattr(device, method)(**params)
+            await getattr(device, service_method)(**params)
             update_tasks.append(device.async_update_ha_state(True))
 
         if update_tasks:
