@@ -406,9 +406,14 @@ class PhilipsAirPurifierFan(FanEntity):
         return attr
 
     async def _async_set_values(self, values):
-        await self.hass.async_add_executor_job(
-            partial(self._client.set_values, values)
-        )
+        try:
+            await self.hass.async_add_executor_job(
+                partial(self._client.set_values, values)
+            )
+        except Exception as exc:
+            _LOGGER.error("Error setting new values.", exc)
+            self._available = False
+            return False
 
     def _find_key(self, value_map, search_value):
         if search_value in value_map.values():
