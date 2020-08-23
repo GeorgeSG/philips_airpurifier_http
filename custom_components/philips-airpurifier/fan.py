@@ -120,7 +120,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
     hass.data[DATA_PHILIPS_FANS].append(device)
 
-    async_add_entities(hass.data[DATA_PHILIPS_FANS])
+    async_add_entities([device])
 
     async def async_service_handler(service):
         entity_ids = service.data.get(SERVICE_ATTR_ENTITY_ID)
