@@ -106,7 +106,9 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     """Set up the philips_airpurifier platform."""
 
     name = config[CONF_NAME]
-    client = HTTPAirClient(config[CONF_HOST], False)
+    client = await hass.async_add_executor_job(
+        lambda: HTTPAirClient(config[CONF_HOST], False)
+    )
     unique_id = None
 
     wifi = await hass.async_add_executor_job(client.get_wifi)
