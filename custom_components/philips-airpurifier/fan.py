@@ -308,7 +308,7 @@ class PhilipsAirPurifierFan(FanEntity):
             values = {PHILIPS_POWER: '1'}
             await self._async_set_values(values)
         else:
-            self.set_speed(speed)
+            await self.async_set_speed(speed)
 
     async def async_turn_off(self, **kwargs) -> None:
         """Turn off the fan."""
