@@ -1,7 +1,12 @@
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge)](https://github.com/custom-components/
 hacs)
 
+## Overview
+
 This is a hard fork of [xMrVizzy/philips-airpurifier](https://github.com/xMrVizzy/philips-airpurifier).
+
+`ha-philips-purifier` is a custom Home Assistant component that enables you to control your Philips Air Purifier devices.
+For now, it supports only older models that use the HTTP protocol for communication. CoAP support comming soon. :)
 
 ## Installation
 
