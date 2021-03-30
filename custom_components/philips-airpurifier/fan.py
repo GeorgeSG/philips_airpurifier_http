@@ -7,11 +7,7 @@ from functools import partial
 import voluptuous as vol
 import homeassistant.helpers.config_validation as cv
 
-from homeassistant.components.fan import (
-    FanEntity,
-    PLATFORM_SCHEMA,
-    SUPPORT_SET_SPEED
-)
+from homeassistant.components.fan import FanEntity, PLATFORM_SCHEMA, SUPPORT_SET_SPEED
 
 from homeassistant.const import (
     CONF_HOST,
@@ -22,10 +18,12 @@ from .const import *
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
-    vol.Required(CONF_HOST): cv.string,
-    vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
-})
+PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
+    {
+        vol.Required(CONF_HOST): cv.string,
+        vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
+    }
+)
 
 AIRPURIFIER_SERVICE_SCHEMA = vol.Schema(
     {vol.Required(SERVICE_ATTR_ENTITY_ID): cv.entity_ids}
@@ -41,15 +39,17 @@ SERVICE_SET_FUNCTION_SCHEMA = AIRPURIFIER_SERVICE_SCHEMA.extend(
 
 SERVICE_SET_TARGET_HUMIDITY_SCHEMA = AIRPURIFIER_SERVICE_SCHEMA.extend(
     {
-        vol.Required(SERVICE_ATTR_HUMIDITY):
-            vol.All(vol.Coerce(int), vol.In(TARGET_HUMIDITY_LIST))
+        vol.Required(SERVICE_ATTR_HUMIDITY): vol.All(
+            vol.Coerce(int), vol.In(TARGET_HUMIDITY_LIST)
+        )
     }
 )
 
 SERVICE_SET_LIGHT_BRIGHTNESS_SCHEMA = AIRPURIFIER_SERVICE_SCHEMA.extend(
     {
-        vol.Required(SERVICE_ATTR_BRIGHTNESS_LEVEL):
-            vol.All(vol.Coerce(int), vol.In(LIGHT_BRIGHTNESS_LIST))
+        vol.Required(SERVICE_ATTR_BRIGHTNESS_LEVEL): vol.All(
+            vol.Coerce(int), vol.In(LIGHT_BRIGHTNESS_LIST)
+        )
     }
 )
 
@@ -60,9 +60,7 @@ SERVICE_SET_CHILD_LOCK_SCHEMA = AIRPURIFIER_SERVICE_SCHEMA.extend(
 SERVICE_SET_TIMER_SCHEMA = AIRPURIFIER_SERVICE_SCHEMA.extend(
     {
         vol.Required(SERVICE_ATTR_TIMER_HOURS): vol.All(
-            vol.Coerce(int),
-            vol.Number(scale=0),
-            vol.Range(min=0, max=12)
+            vol.Coerce(int), vol.Number(scale=0), vol.Range(min=0, max=12)
         )
     }
 )
@@ -72,35 +70,33 @@ SERVICE_SET_DISPLAY_LIGHT_SCHEMA = AIRPURIFIER_SERVICE_SCHEMA.extend(
 )
 
 SERVICE_TO_METHOD = {
-    SERVICE_SET_MODE: {
-        "method": "async_set_mode",
-        "schema": SERVICE_SET_MODE_SCHEMA
-    },
+    SERVICE_SET_MODE: {"method": "async_set_mode", "schema": SERVICE_SET_MODE_SCHEMA},
     SERVICE_SET_FUNCTION: {
         "method": "async_set_function",
-        "schema": SERVICE_SET_FUNCTION_SCHEMA
+        "schema": SERVICE_SET_FUNCTION_SCHEMA,
     },
     SERVICE_SET_TARGET_HUMIDITY: {
         "method": "async_set_target_humidity",
-        "schema": SERVICE_SET_TARGET_HUMIDITY_SCHEMA
+        "schema": SERVICE_SET_TARGET_HUMIDITY_SCHEMA,
     },
     SERVICE_SET_LIGHT_BRIGHTNESS: {
         "method": "async_set_light_brightness",
-        "schema": SERVICE_SET_LIGHT_BRIGHTNESS_SCHEMA
+        "schema": SERVICE_SET_LIGHT_BRIGHTNESS_SCHEMA,
     },
     SERVICE_SET_CHILD_LOCK: {
         "method": "async_set_child_lock",
-        "schema": SERVICE_SET_CHILD_LOCK_SCHEMA
+        "schema": SERVICE_SET_CHILD_LOCK_SCHEMA,
     },
     SERVICE_SET_TIMER: {
         "method": "async_set_timer",
-        "schema": SERVICE_SET_TIMER_SCHEMA
+        "schema": SERVICE_SET_TIMER_SCHEMA,
     },
     SERVICE_SET_DISPLAY_LIGHT: {
         "method": "async_set_display_light",
-        "schema": SERVICE_SET_DISPLAY_LIGHT_SCHEMA
+        "schema": SERVICE_SET_DISPLAY_LIGHT_SCHEMA,
     },
 }
+
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     """Set up the philips_airpurifier platform."""
@@ -130,7 +126,9 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
         # Params to set to method handler. Drop entity_id.
         params = {
-            key: value for key, value in service.data.items() if key != SERVICE_ATTR_ENTITY_ID
+            key: value
+            for key, value in service.data.items()
+            if key != SERVICE_ATTR_ENTITY_ID
         }
 
         if entity_ids:
@@ -153,7 +151,9 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
             await asyncio.wait(update_tasks)
 
     for air_purifier_service in SERVICE_TO_METHOD:
-        schema = SERVICE_TO_METHOD[air_purifier_service].get("schema", AIRPURIFIER_SERVICE_SCHEMA)
+        schema = SERVICE_TO_METHOD[air_purifier_service].get(
+            "schema", AIRPURIFIER_SERVICE_SCHEMA
+        )
         hass.services.async_register(
             DOMAIN, air_purifier_service, async_service_handler, schema=schema
         )
@@ -172,6 +172,14 @@ class PhilipsAirPurifierFan(FanEntity):
         self._state = None
         self._model = None
         self._session_key = None
+
+        self._preset_modes = [
+            MODE_AUTO,
+            MODE_ALLERGEN,
+            MODE_SLEEP,
+            MODE_BACTERIA,
+            MODE_NIGHT,
+        ]
 
         self._fan_speed = None
 
@@ -208,11 +216,11 @@ class PhilipsAirPurifierFan(FanEntity):
 
     async def _update_filters(self):
         filters = await self.hass.async_add_executor_job(self._client.get_filters)
-        self._pre_filter = filters['fltsts0']
-        if 'wicksts' in filters:
-            self._wick_filter = filters['wicksts']
-        self._carbon_filter = filters['fltsts2']
-        self._hepa_filter = filters['fltsts1']
+        self._pre_filter = filters["fltsts0"]
+        if "wicksts" in filters:
+            self._wick_filter = filters["wicksts"]
+        self._carbon_filter = filters["fltsts2"]
+        self._hepa_filter = filters["fltsts1"]
 
     async def _update_model(self):
         firmware = await self.hass.async_add_executor_job(self._client.get_firmware)
@@ -222,7 +230,7 @@ class PhilipsAirPurifierFan(FanEntity):
     async def _update_state(self):
         status = await self.hass.async_add_executor_job(self._client.get_status)
         if PHILIPS_POWER in status:
-            self._state = 'on' if status[PHILIPS_POWER] == '1' else 'off'
+            self._state = "on" if status[PHILIPS_POWER] == "1" else "off"
         if PHILIPS_PM25 in status:
             self._pm25 = status[PHILIPS_PM25]
         if PHILIPS_HUMIDITY in status:
@@ -248,8 +256,7 @@ class PhilipsAirPurifierFan(FanEntity):
             self._light_brightness = status[PHILIPS_LIGHT_BRIGHTNESS]
         if PHILIPS_DISPLAY_LIGHT in status:
             display_light = status[PHILIPS_DISPLAY_LIGHT]
-            self._display_light = DISPLAY_LIGHT_MAP.get(
-                display_light, display_light)
+            self._display_light = DISPLAY_LIGHT_MAP.get(display_light, display_light)
         if PHILIPS_USED_INDEX in status:
             ddp = status[PHILIPS_USED_INDEX]
             self._used_index = USED_INDEX_MAP.get(ddp, ddp)
@@ -307,14 +314,14 @@ class PhilipsAirPurifierFan(FanEntity):
     async def async_turn_on(self, speed: str = None, **kwargs) -> None:
         """Turn on the fan."""
         if speed is None:
-            values = {PHILIPS_POWER: '1'}
+            values = {PHILIPS_POWER: "1"}
             await self._async_set_values(values)
         else:
             await self.async_set_speed(speed)
 
     async def async_turn_off(self, **kwargs) -> None:
         """Turn off the fan."""
-        values = {PHILIPS_POWER: '0'}
+        values = {PHILIPS_POWER: "0"}
         await self._async_set_values(values)
 
     async def async_set_speed(self, speed: str):
@@ -322,9 +329,6 @@ class PhilipsAirPurifierFan(FanEntity):
         if speed in SPEED_MAP.values():
             philips_speed = self._find_key(SPEED_MAP, speed)
             await self._async_set_values({PHILIPS_SPEED: philips_speed})
-        elif speed in MODE_MAP.values():
-            philips_mode = self._find_key(MODE_MAP, speed)
-            await self._async_set_values({PHILIPS_MODE: philips_mode})
         else:
             _LOGGER.warning("Unsupported speed %s", speed)
 
@@ -346,8 +350,7 @@ class PhilipsAirPurifierFan(FanEntity):
         """Set the light brightness of the fan."""
         values = {}
         values[PHILIPS_LIGHT_BRIGHTNESS] = level
-        values[PHILIPS_DISPLAY_LIGHT] = self._find_key(
-            DISPLAY_LIGHT_MAP, level != 0)
+        values[PHILIPS_DISPLAY_LIGHT] = self._find_key(DISPLAY_LIGHT_MAP, level != 0)
         await self._async_set_values(values)
 
     async def async_set_child_lock(self, lock: bool):
