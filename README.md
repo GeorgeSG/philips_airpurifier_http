@@ -24,10 +24,10 @@ fan:
 
 Set the device mode (if supported)
 
-| Field     | Value               | Necessity  | Description                                              |
-| --------- | ------------------- | ---------- | -------------------------------------------------------- |
-| entity_id | `"fan.living_room"` | _Required_ | Name(s) of the entities to set mode                      |
-| mode      | `"allergen"`        | _Required_ | One of "auto", "allergen", "sleep", "bacteria", "night". |
+| Field       | Value               | Necessity  | Description                                              |
+| ----------- | ------------------- | ---------- | -------------------------------------------------------- |
+| entity_id   | `"fan.living_room"` | _Required_ | Name(s) of the entities to set mode                      |
+| preset_mode | `"allergen"`        | _Required_ | One of "auto", "allergen", "sleep", "bacteria", "night". |
 
 ### `philips_airpurifier.set_function`
 
