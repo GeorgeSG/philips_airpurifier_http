@@ -1,6 +1,19 @@
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge)](https://github.com/custom-components/hacs)
+[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge)](https://github.com/custom-components/
+hacs)
 
-## Usage:
+This is a hard fork of [xMrVizzy/philips-airpurifier](https://github.com/xMrVizzy/philips-airpurifier).
+
+## Installation
+
+### Install manually
+
+Download the `philips_airpurifier` folder from this repo and place it in your `custom_components` folder
+
+### Via HACS
+
+Add this repo as a Custom Repository in HACS and install as an Integration from HACS' UI.
+
+## Usage
 
 ```yaml
 fan:
@@ -8,7 +21,7 @@ fan:
   host: 192.168.0.17
 ```
 
-## Configuration variables:
+## Configuration variables
 
 | Field    | Value                 | Necessity  | Description                  |
 | -------- | --------------------- | ---------- | ---------------------------- |
