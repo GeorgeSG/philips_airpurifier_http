@@ -27,7 +27,7 @@ Set the device mode (if supported)
 | Field     | Value               | Necessity  | Description                                              |
 | --------- | ------------------- | ---------- | -------------------------------------------------------- |
 | entity_id | `"fan.living_room"` | _Required_ | Name(s) of the entities to set mode                      |
-| mode      | `"Auto Mode"`       | _Required_ | One of "auto", "allergen", "sleep", "bacteria", "night". |
+| mode      | `"allergen"`        | _Required_ | One of "auto", "allergen", "sleep", "bacteria", "night". |
 
 ### `philips_airpurifier.set_function`
 
