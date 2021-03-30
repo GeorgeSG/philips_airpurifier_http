@@ -1,7 +1,8 @@
 {
   "domain": "philips_airpurifier",
   "name": "Philips AirPurifier",
-  "documentation": "https://github.com/xMrVizzy/philips-airpurifier",
-  "codeowners": ["@xMrVizzy"],
-  "requirements": ["py-air-control==2.1.0"]
+  "documentation": "https://github.com/GeorgeSG/philips-airpurifier",
+  "codeowners": ["@GeorgeSG"],
+  "requirements": ["py-air-control==2.1.0"],
+  "version": "1.0.1"
 }
