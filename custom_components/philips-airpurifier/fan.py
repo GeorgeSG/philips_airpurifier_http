@@ -6,8 +6,17 @@ from pyairctrl.http_client import HTTPAirClient
 from functools import partial
 import voluptuous as vol
 import homeassistant.helpers.config_validation as cv
+from homeassistant.util.percentage import (
+    ordered_list_item_to_percentage,
+    percentage_to_ordered_list_item,
+)
 
-from homeassistant.components.fan import FanEntity, PLATFORM_SCHEMA, SUPPORT_SET_SPEED
+from homeassistant.components.fan import (
+    FanEntity,
+    PLATFORM_SCHEMA,
+    SUPPORT_SET_SPEED,
+    SUPPORT_PRESET_MODE,
+)
 
 from homeassistant.const import (
     CONF_HOST,
@@ -27,10 +36,6 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
 
 AIRPURIFIER_SERVICE_SCHEMA = vol.Schema(
     {vol.Required(SERVICE_ATTR_ENTITY_ID): cv.entity_ids}
-)
-
-SERVICE_SET_MODE_SCHEMA = AIRPURIFIER_SERVICE_SCHEMA.extend(
-    {vol.Required(SERVICE_ATTR_MODE): vol.In(MODE_MAP.values())}
 )
 
 SERVICE_SET_FUNCTION_SCHEMA = AIRPURIFIER_SERVICE_SCHEMA.extend(
@@ -70,7 +75,6 @@ SERVICE_SET_DISPLAY_LIGHT_SCHEMA = AIRPURIFIER_SERVICE_SCHEMA.extend(
 )
 
 SERVICE_TO_METHOD = {
-    SERVICE_SET_MODE: {"method": "async_set_mode", "schema": SERVICE_SET_MODE_SCHEMA},
     SERVICE_SET_FUNCTION: {
         "method": "async_set_function",
         "schema": SERVICE_SET_FUNCTION_SCHEMA,
@@ -173,15 +177,8 @@ class PhilipsAirPurifierFan(FanEntity):
         self._model = None
         self._session_key = None
 
-        self._preset_modes = [
-            MODE_AUTO,
-            MODE_ALLERGEN,
-            MODE_SLEEP,
-            MODE_BACTERIA,
-            MODE_NIGHT,
-        ]
-
         self._fan_speed = None
+        self._preset_mode = None
 
         self._pre_filter = None
         self._wick_filter = None
@@ -246,12 +243,11 @@ class PhilipsAirPurifierFan(FanEntity):
             self._function = FUNCTION_MAP.get(func, func)
         if PHILIPS_MODE in status:
             mode = status[PHILIPS_MODE]
-            self._fan_speed = MODE_MAP.get(mode, mode)
+            self._preset_mode = MODE_MAP.get(mode, mode)
         if PHILIPS_SPEED in status:
             speed = status[PHILIPS_SPEED]
-            speed = SPEED_MAP.get(speed, speed)
-            if speed != SPEED_SILENT and self._fan_speed == MODE_MANUAL:
-                self._fan_speed = speed
+            self._fan_speed = SPEED_MAP.get(speed, speed)
+
         if PHILIPS_LIGHT_BRIGHTNESS in status:
             self._light_brightness = status[PHILIPS_LIGHT_BRIGHTNESS]
         if PHILIPS_DISPLAY_LIGHT in status:
@@ -297,45 +293,60 @@ class PhilipsAirPurifierFan(FanEntity):
         return DEFAULT_ICON
 
     @property
-    def speed_list(self) -> list:
-        """Get the list of available speeds."""
-        return SUPPORTED_SPEED_LIST
+    def percentage(self) -> int:
+        """Return the current percentage."""
+        percentage = ordered_list_item_to_percentage(SPEED_NAMES, self._fan_speed)
+        return percentage
 
     @property
-    def speed(self) -> str:
-        """Return the current speed."""
-        return self._fan_speed
+    def preset_modes(self) -> [str]:
+        """Return all available preset modes."""
+        return MODE_NAMES
+
+    @property
+    def preset_mode(self) -> str:
+        """Return the current preset mode."""
+        return self._preset_mode
 
     @property
     def supported_features(self) -> int:
         """Flag supported features."""
-        return SUPPORT_SET_SPEED
+        return SUPPORT_SET_SPEED | SUPPORT_PRESET_MODE
 
-    async def async_turn_on(self, speed: str = None, **kwargs) -> None:
+    @property
+    def speed_count(self) -> int:
+        return len(SPEED_NAMES)
+
+    async def async_turn_on(self, percentage=None, preset_mode=None, **kwargs) -> None:
         """Turn on the fan."""
-        if speed is None:
-            values = {PHILIPS_POWER: "1"}
-            await self._async_set_values(values)
-        else:
-            await self.async_set_speed(speed)
+
+        values = {PHILIPS_POWER: "1"}
+        await self._async_set_values(values)
+
+        if preset_mode is not None:
+            await self.async_set_preset_mode(preset_mode)
+        elif percentage is not None:
+            await self.async_set_percentage(percentage)
 
     async def async_turn_off(self, **kwargs) -> None:
         """Turn off the fan."""
         values = {PHILIPS_POWER: "0"}
         await self._async_set_values(values)
 
-    async def async_set_speed(self, speed: str):
-        """Set the speed of the fan."""
-        if speed in SPEED_MAP.values():
-            philips_speed = self._find_key(SPEED_MAP, speed)
-            await self._async_set_values({PHILIPS_SPEED: philips_speed})
-        else:
-            _LOGGER.warning("Unsupported speed %s", speed)
+    async def async_set_percentage(self, percentage: int) -> None:
+        """Set the speed percentage of the fan."""
+        speed_name = percentage_to_ordered_list_item(SPEED_NAMES, percentage)
+        speed = self._find_key(SPEED_MAP, speed_name)
+        await self._async_set_values({PHILIPS_SPEED: speed})
 
-    async def async_set_mode(self, mode: str):
-        """Set the mode of the fan."""
-        philips_mode = self._find_key(MODE_MAP, mode)
-        await self._async_set_values({PHILIPS_MODE: philips_mode})
+    async def async_set_preset_mode(self, preset_mode: str) -> None:
+        """Set a preset mode on the fan."""
+
+        if preset_mode in MODE_MAP.values():
+            philips_mode = self._find_key(MODE_MAP, preset_mode)
+            await self._async_set_values({PHILIPS_MODE: philips_mode})
+        else:
+            _LOGGER.warning('Unsupported preset mode "%s"', preset_mode)
 
     async def async_set_function(self, function: str):
         """Set the function of the fan."""

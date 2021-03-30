@@ -9,7 +9,6 @@ DEFAULT_NAME = "Philips AirPurifier"
 DEFAULT_ICON = "mdi:air-purifier"
 
 # Services
-SERVICE_SET_MODE = "set_mode"
 SERVICE_SET_FUNCTION = "set_function"
 SERVICE_SET_TARGET_HUMIDITY = "set_target_humidity"
 SERVICE_SET_LIGHT_BRIGHTNESS = "set_light_brightness"
@@ -19,7 +18,6 @@ SERVICE_SET_DISPLAY_LIGHT = "set_display_light"
 
 # Service attributes
 SERVICE_ATTR_ENTITY_ID = "entity_id"
-SERVICE_ATTR_MODE = "mode"
 SERVICE_ATTR_FUNCTION = "function"
 SERVICE_ATTR_HUMIDITY = "humidity"
 SERVICE_ATTR_BRIGHTNESS_LEVEL = "level"
@@ -82,26 +80,36 @@ PHILIPS_FUNCTION_BOTH = "PH"
 
 # Speed values
 SPEED_SILENT = "Silent"
-SPEED_TURBO = "Turbo"
 SPEED_1 = "Speed 1"
 SPEED_2 = "Speed 2"
 SPEED_3 = "Speed 3"
+SPEED_TURBO = "Turbo"
 
+SPEED_NAMES = [SPEED_SILENT, SPEED_1, SPEED_2, SPEED_3, SPEED_TURBO]
 SPEED_MAP = {
     PHILIPS_SPEED_SILENT: SPEED_SILENT,
-    PHILIPS_SPEED_TURBO: SPEED_TURBO,
     "1": SPEED_1,
     "2": SPEED_2,
     "3": SPEED_3,
+    PHILIPS_SPEED_TURBO: SPEED_TURBO,
 }
 
 # Mode values
-MODE_AUTO = "Auto Mode"
-MODE_ALLERGEN = "Allergen Mode"
-MODE_SLEEP = "Sleep Mode"
-MODE_MANUAL = "Manual"
-MODE_BACTERIA = "Bacteria"
-MODE_NIGHT = "Night"
+MODE_AUTO = "auto"
+MODE_ALLERGEN = "allergen"
+MODE_SLEEP = "sleep"
+MODE_MANUAL = "manual"
+MODE_BACTERIA = "bacteria"
+MODE_NIGHT = "night"
+
+MODE_NAMES = [
+    MODE_AUTO,
+    MODE_ALLERGEN,
+    MODE_SLEEP,
+    MODE_MANUAL,
+    MODE_BACTERIA,
+    MODE_NIGHT,
+]
 
 MODE_MAP = {
     PHILIPS_MODE_AUTO: MODE_AUTO,
@@ -111,16 +119,6 @@ MODE_MAP = {
     PHILIPS_MODE_BACTERIA: MODE_BACTERIA,
     PHILIPS_MODE_NIGH: MODE_NIGHT,
 }
-
-SUPPORTED_SPEED_LIST = [
-    MODE_AUTO,
-    MODE_ALLERGEN,
-    MODE_SLEEP,
-    SPEED_1,
-    SPEED_2,
-    SPEED_3,
-    SPEED_TURBO,
-]
 
 # Function values
 FUNCTION_PURIFICATION = "Purification"

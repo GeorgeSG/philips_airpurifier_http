@@ -1,15 +1,5 @@
 # philips-airpurifier custom services.
 
-set_mode:
-  description: Set the device mode (if supported)
-  fields:
-    entity_id:
-      description: Name(s) of the entities to set mode
-      example: "fan.living_room"
-    mode:
-      description: One of "Auto Mode", "Allergen Mode", "Sleep Mode", "Bacteria", "Night".
-      example: "Auto Mode"
-
 set_function:
   description: Set the device function (if supported)
   fields:
