@@ -284,8 +284,10 @@ class PhilipsAirPurifierFan(FanEntity):
     @property
     def percentage(self) -> int:
         """Return the current percentage."""
-        percentage = ordered_list_item_to_percentage(SPEED_NAMES, self._fan_speed)
-        return percentage
+
+        if self._fan_speed != "0":
+            percentage = ordered_list_item_to_percentage(SPEED_NAMES, self._fan_speed)
+            return percentage
 
     @property
     def preset_modes(self) -> [str]:
