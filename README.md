@@ -93,6 +93,15 @@ Set the device off time
 | entity_id | `"fan.living_room"` | _Required_ | Name(s) of the entities to set off timer |
 | hours     | `5`                 | _Required_ | Hours between 0 and 12                   |
 
+### `philips_airpurifier.set_display_light`
+
+Set the device display light on or off
+
+| Field     | Value               | Necessity  | Description                                  |
+| --------- | ------------------- | ---------- | -------------------------------------------- |
+| entity_id | `"fan.living_room"` | _Required_ | Name(s) of the entities to set display light |
+| light     | `true`              | _Required_ | true or false                                |
+
 ### `philips_airpurifier.set_used_index`
 
 Sets the device used index(IAI or PM2.5)
