@@ -104,7 +104,7 @@ SERVICE_TO_METHOD = {
         "method": "async_set_display_light",
         "schema": SERVICE_SET_DISPLAY_LIGHT_SCHEMA,
     },
-    SERVICE_SERVICE_SET_USED_INDEX: {
+    SERVICE_SET_USED_INDEX: {
         "method": "async_set_used_index",
         "schema": SERVICE_SET_USED_INDEX_SCHEMA,
     },
@@ -351,7 +351,7 @@ class PhilipsAirPurifierFan(FanEntity):
     async def async_set_used_index(self, usedindex: str) -> None:
         """Set the usedindex of the fan."""
         philips_usedindex = self._find_key(USED_INDEX_MAP, usedindex)
-        self._async_set_values({PHILIPS_USED_INDEX: philips_usedindex})
+        await self._async_set_values({PHILIPS_USED_INDEX: philips_usedindex})
 
     async def async_set_function(self, function: str):
         """Set the function of the fan."""
