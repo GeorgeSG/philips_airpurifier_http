@@ -348,10 +348,10 @@ class PhilipsAirPurifierFan(FanEntity):
         else:
             _LOGGER.warning('Unsupported preset mode "%s"', preset_mode)
         
-    async def async_set_used_index(self, usedindex: str) -> None:
-        """Set the usedindex of the fan."""
-        philips_usedindex = self._find_key(USED_INDEX_MAP, usedindex)
-        await self._async_set_values({PHILIPS_USED_INDEX: philips_usedindex})
+    async def async_set_used_index(self, used_index: str) -> None:
+        """Set the used_index of the fan."""
+        philips_used_index = self._find_key(USED_INDEX_MAP, used_index)
+        await self._async_set_values({PHILIPS_USED_INDEX: philips_used_index})
 
     async def async_set_function(self, function: str):
         """Set the function of the fan."""
