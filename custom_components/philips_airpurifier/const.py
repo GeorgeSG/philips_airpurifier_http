@@ -25,7 +25,7 @@ SERVICE_ATTR_BRIGHTNESS_LEVEL = "level"
 SERVICE_ATTR_CHILD_LOCK = "lock"
 SERVICE_ATTR_TIMER_HOURS = "hours"
 SERVICE_ATTR_DISPLAY_LIGHT = "light"
-SERVICE_ATTR_USED_INDEX = "usedindex"
+SERVICE_ATTR_USED_INDEX = "used_index"
 
 # Device attribute keys
 ATTR_MODEL = "model"
