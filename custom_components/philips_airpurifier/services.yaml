@@ -66,6 +66,6 @@ set_used_index:
     entity_id:
       description: Name(s) of the entities to set mode
       example: "fan.living_room"
-    usedindex:
+    used_index:
       description: One of "IAI" or "PM2.5".
       example: "IAI"
