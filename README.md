@@ -102,6 +102,15 @@ Set the device display light on or off
 | entity_id | `"fan.living_room"` | _Required_ | Name(s) of the entities to set display light |
 | light     | `true`              | _Required_ | true or false                                |
 
+### `philips_airpurifier.set_used_index`
+
+Sets the device used index(IAI or PM2.5)
+
+| Field     | Value               | Necessity  | Description                                  |
+| --------- | ------------------- | ---------- | -------------------------------------------- |
+| entity_id | `"fan.living_room"` | _Required_ | Name(s) of the entities to set display light |
+| used_index | `"IAI"`               | _Required_ | One of "IAI" or "PM2.5".                    |
+
 ## Meta
 
 **Georgi Gardev**

@@ -74,6 +74,11 @@ SERVICE_SET_DISPLAY_LIGHT_SCHEMA = AIRPURIFIER_SERVICE_SCHEMA.extend(
     {vol.Required(SERVICE_ATTR_DISPLAY_LIGHT): cv.boolean}
 )
 
+SERVICE_SET_USED_INDEX_SCHEMA = AIRPURIFIER_SERVICE_SCHEMA.extend(
+    {vol.Required(SERVICE_ATTR_USED_INDEX): vol.In(USED_INDEX_MAP.values())}
+)
+
+
 SERVICE_TO_METHOD = {
     SERVICE_SET_FUNCTION: {
         "method": "async_set_function",
@@ -98,6 +103,10 @@ SERVICE_TO_METHOD = {
     SERVICE_SET_DISPLAY_LIGHT: {
         "method": "async_set_display_light",
         "schema": SERVICE_SET_DISPLAY_LIGHT_SCHEMA,
+    },
+    SERVICE_SET_USED_INDEX: {
+        "method": "async_set_used_index",
+        "schema": SERVICE_SET_USED_INDEX_SCHEMA,
     },
 }
 
@@ -338,6 +347,11 @@ class PhilipsAirPurifierFan(FanEntity):
             await self._async_set_values({PHILIPS_MODE: philips_mode})
         else:
             _LOGGER.warning('Unsupported preset mode "%s"', preset_mode)
+        
+    async def async_set_used_index(self, used_index: str) -> None:
+        """Set the used_index of the fan."""
+        philips_used_index = self._find_key(USED_INDEX_MAP, used_index)
+        await self._async_set_values({PHILIPS_USED_INDEX: philips_used_index})
 
     async def async_set_function(self, function: str):
         """Set the function of the fan."""

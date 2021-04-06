@@ -60,3 +60,12 @@ set_display_light:
       description: true or false
       example: true
 
+set_used_index:
+  description: Set the used index
+  fields:
+    entity_id:
+      description: Name(s) of the entities to set mode
+      example: "fan.living_room"
+    used_index:
+      description: One of "IAI" or "PM2.5".
+      example: "IAI"

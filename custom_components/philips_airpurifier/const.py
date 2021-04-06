@@ -15,6 +15,7 @@ SERVICE_SET_LIGHT_BRIGHTNESS = "set_light_brightness"
 SERVICE_SET_CHILD_LOCK = "set_child_lock"
 SERVICE_SET_TIMER = "set_timer"
 SERVICE_SET_DISPLAY_LIGHT = "set_display_light"
+SERVICE_SET_USED_INDEX = "set_used_index"
 
 # Service attributes
 SERVICE_ATTR_ENTITY_ID = "entity_id"
@@ -24,6 +25,7 @@ SERVICE_ATTR_BRIGHTNESS_LEVEL = "level"
 SERVICE_ATTR_CHILD_LOCK = "lock"
 SERVICE_ATTR_TIMER_HOURS = "hours"
 SERVICE_ATTR_DISPLAY_LIGHT = "light"
+SERVICE_ATTR_USED_INDEX = "used_index"
 
 # Device attribute keys
 ATTR_MODEL = "model"
