@@ -11,6 +11,9 @@ For now, it supports only older models that use the HTTP protocol for communicat
 
 ## Installation
 
+!!!! BREAKING CHANGE !!!!
+Addition _of _http to platform name to allow parallel installation next to COAP component
+
 ### Install manually
 
 Download the `philips_airpurifier` folder from this repo and place it in your `custom_components` folder
@@ -23,17 +26,17 @@ Add this repo as a Custom Repository in HACS and install as an Integration from 
 
 ```yaml
 fan:
-  platform: philips_airpurifier
+  platform: philips_airpurifier_http
   host: 192.168.0.17
 ```
 
 ## Configuration variables
 
-| Field    | Value                 | Necessity  | Description                  |
-| -------- | --------------------- | ---------- | ---------------------------- |
-| platform | `philips_airpurifier` | _Required_ | The platform name.           |
-| host     | 192.168.0.17          | _Required_ | IP address of your Purifier. |
-| name     | Philips Air Purifier  | Optional   | Name of the Fan.             |
+| Field    | Value                      | Necessity  | Description                  |
+| -------- | -------------------------- | ---------- | ---------------------------- |
+| platform | `philips_airpurifier_http` | _Required_ | The platform name.           |
+| host     | 192.168.0.17               | _Required_ | IP address of your Purifier. |
+| name     | Philips Air Purifier       | Optional   | Name of the Fan.             |
 
 ---
 
