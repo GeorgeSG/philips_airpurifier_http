@@ -118,8 +118,15 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     client = await hass.async_add_executor_job(
         lambda: HTTPAirClient(config[CONF_HOST], False)
     )
+    unique_id = None
 
-    device = PhilipsAirPurifierFan(hass, client, name)
+    wifi = await hass.async_add_executor_job(client.get_wifi)
+    if PHILIPS_MAC_ADDRESS in wifi:
+        unique_id = wifi[PHILIPS_MAC_ADDRESS]
+    else:
+        unique_id = config[CONF_UNIQUE_ID]
+
+    device = PhilipsAirPurifierFan(hass, client, name, unique_id)
 
     if DATA_PHILIPS_FANS not in hass.data:
         hass.data[DATA_PHILIPS_FANS] = []
@@ -170,11 +177,12 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 class PhilipsAirPurifierFan(FanEntity):
     """philips_aurpurifier fan entity."""
 
-    def __init__(self, hass, client, name):
+    def __init__(self, hass, client, name, unique_id):
         self.hass = hass
         self._client = client
         self._name = name
 
+        self._unique_id = unique_id
         self._available = False
         self._state = None
         self._model = None
@@ -250,7 +258,6 @@ class PhilipsAirPurifierFan(FanEntity):
         if PHILIPS_SPEED in status:
             speed = status[PHILIPS_SPEED]
             self._fan_speed = SPEED_MAP.get(speed, speed)
-
         if PHILIPS_LIGHT_BRIGHTNESS in status:
             self._light_brightness = status[PHILIPS_LIGHT_BRIGHTNESS]
         if PHILIPS_DISPLAY_LIGHT in status:
@@ -279,6 +286,12 @@ class PhilipsAirPurifierFan(FanEntity):
     def available(self):
         """Return True when state is known."""
         return self._available
+
+    @property
+    def unique_id(self):
+        """Return an unique ID."""
+        return self._unique_id
+    
 
     @property
     def name(self):

@@ -1,5 +1,5 @@
 {
-  "domain": "philips_airpurifier",
+  "domain": "philips_airpurifier_http",
   "name": "Philips AirPurifier",
   "documentation": "https://github.com/GeorgeSG/philips-airpurifier",
   "codeowners": ["@GeorgeSG"],
