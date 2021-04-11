@@ -21,6 +21,7 @@ from homeassistant.components.fan import (
 from homeassistant.const import (
     CONF_HOST,
     CONF_NAME,
+    CONF_UNIQUE_ID,
 )
 
 from .const import *

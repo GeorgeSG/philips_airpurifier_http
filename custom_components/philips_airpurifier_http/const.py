@@ -97,12 +97,12 @@ SPEED_MAP = {
 }
 
 # Mode values
-MODE_AUTO = 'Auto Mode'
-MODE_ALLERGEN = 'Allergen Mode'
-MODE_SLEEP = 'Sleep Mode'
-MODE_MANUAL = 'Manual'
-MODE_BACTERIA = 'Bacteria'
-MODE_NIGHT = 'Night'
+MODE_AUTO = 'auto'
+MODE_ALLERGEN = 'allergen'
+MODE_SLEEP = 'sleep'
+MODE_MANUAL = 'manual'
+MODE_BACTERIA = 'bacteria'
+MODE_NIGHT = 'night'
 
 MODE_NAMES = [
     MODE_AUTO,
