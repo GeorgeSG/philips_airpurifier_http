@@ -16,7 +16,7 @@ Addition _of _http to platform name to allow parallel installation next to COAP 
 
 ### Install manually
 
-Download the `philips_airpurifier` folder from this repo and place it in your `custom_components` folder
+Download the `philips_airpurifier_http` folder from this repo and place it in your `custom_components` folder
 
 ### Via HACS
 
