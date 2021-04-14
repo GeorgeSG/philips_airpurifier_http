@@ -118,6 +118,9 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     client = await hass.async_add_executor_job(
         lambda: HTTPAirClient(config[CONF_HOST], False)
     )
+    unique_id = None
+
+    wifi = await hass.async_add_executor_job(client.get_wifi)
 
     device = PhilipsAirPurifierFan(hass, client, name)
 
@@ -250,7 +253,6 @@ class PhilipsAirPurifierFan(FanEntity):
         if PHILIPS_SPEED in status:
             speed = status[PHILIPS_SPEED]
             self._fan_speed = SPEED_MAP.get(speed, speed)
-
         if PHILIPS_LIGHT_BRIGHTNESS in status:
             self._light_brightness = status[PHILIPS_LIGHT_BRIGHTNESS]
         if PHILIPS_DISPLAY_LIGHT in status:

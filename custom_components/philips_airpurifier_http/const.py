@@ -1,7 +1,7 @@
 """ philips_airpurifier constants"""
 
 # Integration setup
-DOMAIN = "philips_airpurifier"
+DOMAIN = "philips_airpurifier_http"
 DATA_PHILIPS_FANS = "fan.philips_airpurifier"
 
 # Integration defaults
