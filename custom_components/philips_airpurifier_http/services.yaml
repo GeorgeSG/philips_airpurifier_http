@@ -1,4 +1,4 @@
-# philips-airpurifier custom services.
+# philips_airpurifier_http custom services.
 
 set_function:
   description: Set the device function (if supported)

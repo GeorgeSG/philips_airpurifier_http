@@ -118,9 +118,6 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     client = await hass.async_add_executor_job(
         lambda: HTTPAirClient(config[CONF_HOST], False)
     )
-    unique_id = None
-
-    wifi = await hass.async_add_executor_job(client.get_wifi)
 
     device = PhilipsAirPurifierFan(hass, client, name)
 
@@ -349,7 +346,7 @@ class PhilipsAirPurifierFan(FanEntity):
             await self._async_set_values({PHILIPS_MODE: philips_mode})
         else:
             _LOGGER.warning('Unsupported preset mode "%s"', preset_mode)
-        
+
     async def async_set_used_index(self, used_index: str) -> None:
         """Set the used_index of the fan."""
         philips_used_index = self._find_key(USED_INDEX_MAP, used_index)
