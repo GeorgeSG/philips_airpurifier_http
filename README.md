@@ -6,13 +6,11 @@
 
 This is a hard fork of [xMrVizzy/philips-airpurifier](https://github.com/xMrVizzy/philips-airpurifier).
 
-`ha-philips-purifier` is a custom Home Assistant component that enables you to control your Philips Air Purifier devices.
+`ha-philips-purifier_http` is a custom Home Assistant component that enables you to control your Philips Air Purifier devices.
 For now, it supports only older models that use the HTTP protocol for communication. CoAP support comming soon. :)
 
 ## Installation
 
-!!!! BREAKING CHANGE !!!!
-Addition _of _http to platform name to allow parallel installation next to COAP component
 
 ### Install manually
 
