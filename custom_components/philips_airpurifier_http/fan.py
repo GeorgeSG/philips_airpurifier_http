@@ -24,6 +24,7 @@ from homeassistant.const import (
 )
 
 from .const import *
+from .model_config import *
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -294,13 +295,15 @@ class PhilipsAirPurifierFan(FanEntity):
         """Return the current percentage."""
 
         if self._fan_speed != "0":
-            percentage = ordered_list_item_to_percentage(SPEED_NAMES, self._fan_speed)
+            percentage = ordered_list_item_to_percentage(
+                self._speed_names, self._fan_speed
+            )
             return percentage
 
     @property
     def preset_modes(self) -> [str]:
         """Return all available preset modes."""
-        return MODE_NAMES
+        return self._model_config.get(DEVICE_CONFIG_MODES)
 
     @property
     def preset_mode(self) -> str:
@@ -314,7 +317,7 @@ class PhilipsAirPurifierFan(FanEntity):
 
     @property
     def speed_count(self) -> int:
-        return len(SPEED_NAMES)
+        return len(self._speed_names)
 
     async def async_turn_on(self, percentage=None, preset_mode=None, **kwargs) -> None:
         """Turn on the fan."""
@@ -334,9 +337,19 @@ class PhilipsAirPurifierFan(FanEntity):
 
     async def async_set_percentage(self, percentage: int) -> None:
         """Set the speed percentage of the fan."""
-        speed_name = percentage_to_ordered_list_item(SPEED_NAMES, percentage)
+
+        if percentage == 0:
+            await self.async_turn_off()
+            return
+
+        speed_name = percentage_to_ordered_list_item(self._speed_names, percentage)
         speed = self._find_key(SPEED_MAP, speed_name)
-        await self._async_set_values({PHILIPS_SPEED: speed})
+        values = {PHILIPS_SPEED: speed}
+
+        if self._should_change_to_manual:
+            values[PHILIPS_MODE] = MODE_MANUAL
+
+        await self._async_set_values(values)
 
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         """Set a preset mode on the fan."""
@@ -440,3 +453,15 @@ class PhilipsAirPurifierFan(FanEntity):
             return [key for key, value in value_map.items() if value == search_value][0]
 
         return None
+
+    @property
+    def _model_config(self):
+        return MODELS.get(self._model, MODELS.get(DEFAULT_MODEL))
+
+    @property
+    def _speed_names(self):
+        return self._model_config.get(DEVICE_CONFIG_SPEEDS)
+
+    @property
+    def _should_change_to_manual(self):
+        return self._model_config.get(DEVICE_CONFIG_CHANGE_TO_MANUAL)
