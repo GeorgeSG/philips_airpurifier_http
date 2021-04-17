@@ -6,14 +6,14 @@
 
 This is a hard fork of [xMrVizzy/philips-airpurifier](https://github.com/xMrVizzy/philips-airpurifier).
 
-`ha-philips-purifier` is a custom Home Assistant component that enables you to control your Philips Air Purifier devices.
+This is a custom Home Assistant component that enables you to control your Philips Air Purifier devices.
 For now, it supports only older models that use the HTTP protocol for communication. CoAP support comming soon. :)
 
 ## Installation
 
 ### Install manually
 
-Download the `philips_airpurifier` folder from this repo and place it in your `custom_components` folder
+Download the `philips_airpurifier_http` folder from this repo and place it in your `custom_components` folder
 
 ### Via HACS
 
@@ -23,17 +23,17 @@ Add this repo as a Custom Repository in HACS and install as an Integration from 
 
 ```yaml
 fan:
-  platform: philips_airpurifier
+  platform: philips_airpurifier_http
   host: 192.168.0.17
 ```
 
 ## Configuration variables
 
-| Field    | Value                 | Necessity  | Description                  |
-| -------- | --------------------- | ---------- | ---------------------------- |
-| platform | `philips_airpurifier` | _Required_ | The platform name.           |
-| host     | 192.168.0.17          | _Required_ | IP address of your Purifier. |
-| name     | Philips Air Purifier  | Optional   | Name of the Fan.             |
+| Field    | Value                      | Necessity  | Description                  |
+| -------- | -------------------------- | ---------- | ---------------------------- |
+| platform | `philips_airpurifier_http` | _Required_ | The platform name.           |
+| host     | 192.168.0.17               | _Required_ | IP address of your Purifier. |
+| name     | Philips Air Purifier       | Optional   | Name of the Fan.             |
 
 ---
 
@@ -48,7 +48,7 @@ Set the device mode (if supported)
 | entity_id   | `"fan.living_room"` | _Required_ | Name(s) of the entities to set mode                      |
 | preset_mode | `"allergen"`        | _Required_ | One of "auto", "allergen", "sleep", "bacteria", "night". |
 
-### `philips_airpurifier.set_function`
+### `philips_airpurifier_http.set_function`
 
 Set the device function (if supported)
 
@@ -75,7 +75,7 @@ Set the device light brightness
 | entity_id | `"fan.living_room"` | _Required_ | Name(s) of the entities to set light brightness                       |
 | level     | `50`                | _Required_ | One of 0, 25, 50, 75, 100. Turns off the display light if level is 0. |
 
-### `philips_airpurifier.set_child_lock`
+### `philips_airpurifier_http.set_child_lock`
 
 Set the device child lock on or off
 
@@ -84,7 +84,7 @@ Set the device child lock on or off
 | entity_id | `"fan.living_room"` | _Required_ | Name(s) of the entities to set child lock |
 | lock      | `true`              | _Required_ | true or false                             |
 
-### `philips_airpurifier.set_timer`
+### `philips_airpurifier_http.set_timer`
 
 Set the device off time
 
@@ -93,7 +93,7 @@ Set the device off time
 | entity_id | `"fan.living_room"` | _Required_ | Name(s) of the entities to set off timer |
 | hours     | `5`                 | _Required_ | Hours between 0 and 12                   |
 
-### `philips_airpurifier.set_display_light`
+### `philips_airpurifier_http.set_display_light`
 
 Set the device display light on or off
 
@@ -101,6 +101,15 @@ Set the device display light on or off
 | --------- | ------------------- | ---------- | -------------------------------------------- |
 | entity_id | `"fan.living_room"` | _Required_ | Name(s) of the entities to set display light |
 | light     | `true`              | _Required_ | true or false                                |
+
+### `philips_airpurifier_http.set_used_index`
+
+Sets the device used index(IAI or PM2.5)
+
+| Field      | Value               | Necessity  | Description                                  |
+| ---------- | ------------------- | ---------- | -------------------------------------------- |
+| entity_id  | `"fan.living_room"` | _Required_ | Name(s) of the entities to set display light |
+| used_index | `"IAI"`             | _Required_ | One of "IAI" or "PM2.5".                     |
 
 ## Meta
 

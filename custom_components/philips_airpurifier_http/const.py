@@ -1,7 +1,7 @@
-""" philips_airpurifier constants"""
+""" philips_airpurifier_http constants"""
 
 # Integration setup
-DOMAIN = "philips_airpurifier"
+DOMAIN = "philips_airpurifier_http"
 DATA_PHILIPS_FANS = "fan.philips_airpurifier"
 
 # Integration defaults
@@ -15,6 +15,7 @@ SERVICE_SET_LIGHT_BRIGHTNESS = "set_light_brightness"
 SERVICE_SET_CHILD_LOCK = "set_child_lock"
 SERVICE_SET_TIMER = "set_timer"
 SERVICE_SET_DISPLAY_LIGHT = "set_display_light"
+SERVICE_SET_USED_INDEX = "set_used_index"
 
 # Service attributes
 SERVICE_ATTR_ENTITY_ID = "entity_id"
@@ -24,6 +25,7 @@ SERVICE_ATTR_BRIGHTNESS_LEVEL = "level"
 SERVICE_ATTR_CHILD_LOCK = "lock"
 SERVICE_ATTR_TIMER_HOURS = "hours"
 SERVICE_ATTR_DISPLAY_LIGHT = "light"
+SERVICE_ATTR_USED_INDEX = "used_index"
 
 # Device attribute keys
 ATTR_MODEL = "model"
@@ -85,7 +87,7 @@ SPEED_2 = "Speed 2"
 SPEED_3 = "Speed 3"
 SPEED_TURBO = "Turbo"
 
-SPEED_NAMES = [SPEED_SILENT, SPEED_1, SPEED_2, SPEED_3, SPEED_TURBO]
+ALL_SPEEDS = [SPEED_SILENT, SPEED_1, SPEED_2, SPEED_3, SPEED_TURBO]
 SPEED_MAP = {
     PHILIPS_SPEED_SILENT: SPEED_SILENT,
     "1": SPEED_1,
@@ -102,7 +104,7 @@ MODE_MANUAL = "manual"
 MODE_BACTERIA = "bacteria"
 MODE_NIGHT = "night"
 
-MODE_NAMES = [
+ALL_MODES = [
     MODE_AUTO,
     MODE_ALLERGEN,
     MODE_SLEEP,
