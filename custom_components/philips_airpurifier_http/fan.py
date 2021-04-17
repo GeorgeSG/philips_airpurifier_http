@@ -347,7 +347,7 @@ class PhilipsAirPurifierFan(FanEntity):
         values = {PHILIPS_SPEED: speed}
 
         if self._should_change_to_manual:
-            values[PHILIPS_MODE] = MODE_MANUAL
+            values[PHILIPS_MODE] = self._find_key(MODE_MAP, MODE_MANUAL)
 
         await self._async_set_values(values)
 
