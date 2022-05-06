@@ -395,7 +395,7 @@ class PhilipsAirPurifierFan(FanEntity):
         await self._async_set_values({PHILIPS_DISPLAY_LIGHT: light})
 
     @property
-    def device_state_attributes(self):
+    def extra_state_attributes(self):
         """Return the state attributes of the device."""
         attr = {}
 

@@ -2,7 +2,8 @@
   "domain": "philips_airpurifier_http",
   "name": "Philips AirPurifier (HTTP)",
   "documentation": "https://github.com/GeorgeSG/philips-airpurifier",
+  "issue_tracker": "https://github.com/GeorgeSG/philips-airpurifier/issues",
   "codeowners": ["@GeorgeSG"],
   "requirements": ["py-air-control==2.2.0"],
-  "version": "1.0.1"
+  "version": "1.4.2"
 }
