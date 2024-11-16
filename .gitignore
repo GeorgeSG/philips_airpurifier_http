@@ -1,3 +1,6 @@
 env/
 bin/
 .vscode/
+__pycache__
+devtools/
+dev.sh

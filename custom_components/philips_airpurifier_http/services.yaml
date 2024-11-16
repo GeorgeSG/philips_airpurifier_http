@@ -2,70 +2,83 @@
 
 set_function:
   description: Set the device function (if supported)
+  target:
+    entity:
+      domain: fan
+      integration: philips_airpurifier_http
   fields:
-    entity_id:
-      description: Name(s) of the entities to set function
-      example: "fan.living_room"
     function:
       description: One of "Purification" or "Purification & Humidification".
       example: "Purification & Humidification"
 
 set_target_humidity:
   description: Set the device target humidity (if supported)
+  target:
+    entity:
+      domain: fan
+      integration: philips_airpurifier_http
   fields:
-    entity_id:
-      description: Name(s) of the entities to set target humidity
-      example: "fan.living_room"
     humidity:
+      required: true
       description: One of 40, 50, 60
       example: 40
 
 set_light_brightness:
   description: Set the device light brightness
+  target:
+    entity:
+      domain: fan
+      integration: philips_airpurifier_http
   fields:
-    entity_id:
-      description: Name(s) of the entities to set light brightness
-      example: "fan.living_room"
     level:
+      required: true
       description: One of 0, 25, 50, 75, 100. Turns off the display light if level is 0.
       example: 50
 
 set_child_lock:
   description: Set the device child lock on or off
+  target:
+    entity:
+      domain: fan
+      integration: philips_airpurifier_http
   fields:
-    entity_id:
-      description: Name(s) of the entities to set child lock
-      example: "fan.living_room"
     lock:
+      required: true
       description: true or false
       example: true
 
 set_timer:
   description: Set the device off timer
+  target:
+    entity:
+      domain: fan
+      integration: philips_airpurifier_http
   fields:
-    entity_id:
-      description: Name(s) of the entities to set off timer
-      example: "fan.living_room"
     hours:
+      required: true
       description: Hours between 0 and 12
       example: 5
 
 set_display_light:
   description: Set the device display light on or off
+  target:
+    entity:
+      domain: fan
+      integration: philips_airpurifier_http
   fields:
-    entity_id:
-      description: Name(s) of the entities to set display light
-      example: "fan.living_room"
     light:
+      required: true
       description: true or false
       example: true
 
 set_used_index:
   description: Set the used index
+  target:
+    entity:
+      domain: fan
+      integration: philips_airpurifier_http
   fields:
-    entity_id:
-      description: Name(s) of the entities to set mode
-      example: "fan.living_room"
     used_index:
+      required: true
       description: One of "IAI" or "PM2.5".
       example: "IAI"
