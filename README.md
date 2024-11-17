@@ -123,7 +123,7 @@ Sets the device used index(IAI or PM2.5)
 [hacs-link]: https://github.com/hacs/integration
 [releases-shield]: https://img.shields.io/github/release/GeorgeSG/ha-philips-airpurifier.svg
 [releases-link]: https://github.com/GeorgeSG/ha-philips-airpurifier/releases
-[maintenance-shield]: https://img.shields.io/maintenance/yes/2022.svg
+[maintenance-shield]: https://img.shields.io/maintenance/yes/2024.svg
 [maintenance-link]: https://github.com/GeorgeSG/ha-philips-airpurifier
 [github-icon]: http://i.imgur.com/9I6NRUm.png
 [github-link]: https://github.com/GeorgeSG/
