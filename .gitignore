@@ -4,3 +4,4 @@ bin/
 __pycache__
 devtools/
 dev.sh
+.idea/
